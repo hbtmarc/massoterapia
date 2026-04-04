@@ -1,5 +1,48 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Agendamento online com Raquel Maia Massoterapeuta – somente com hora marcada." />
+  <meta name="theme-color" content="#3b7a64" />
+  <meta name="color-scheme" content="light" />
+  <title>Raquel Maia Massoterapeuta – Agendamento Online</title>
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
 <body>
-<h1>Site</h1>
+
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a href="#/inicio" class="logo" aria-label="Ir para a página inicial">
+        <svg class="logo-icon" aria-hidden="true" width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 14 C9 10 14 7 14 7 C14 7 19 10 19 14 C19 18 14 21 14 21 C14 21 9 18 9 14z"
+                fill="currentColor" opacity=".2"/>
+          <path d="M14 8 L14 20 M9.5 11.5 L18.5 11.5 M9.5 16.5 L18.5 16.5"
+                stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <span class="logo-text">Raquel Maia</span>
+          <span style="display:block;font-size:.68rem;font-weight:500;color:var(--text-muted);letter-spacing:.01em;line-height:1;">Massoterapeuta</span>
+        </div>
+      </a>
+      <nav class="site-nav" aria-label="Menu principal">
+        <a href="#/inicio" class="nav-link">Início</a>
+        <a href="#/admin" class="nav-link nav-link--admin">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Views são injetadas aqui pelo router -->
+  <main id="app" role="main" aria-live="polite" aria-atomic="false"></main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <p class="footer-text">&copy; 2026 Raquel Maia Massoterapeuta</p>
+      <p class="footer-tagline">Desconecte do estresse. Conecte-se com você.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="scripts/app.js"></script>
 </body>
 </html>

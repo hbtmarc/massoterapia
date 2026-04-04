@@ -1,0 +1,29 @@
+{
+  "rules": {
+    // ─── Locks de slot ─────────────────────────────────────────────────────
+    // Clientes anônimos precisam ler (ver disponibilidade) e escrever
+    // (reservar atomicamente via runTransaction) sem autenticação.
+    "slotLocks": {
+      ".read":  true,
+      ".write": true
+    },
+
+    // ─── Agendamentos ──────────────────────────────────────────────────────
+    // Leitura: apenas usuários autenticados (admin).
+    // Escrita por booking individual:
+    //   - Criar novo entry (data inexistente): qualquer um (cliente anônimo)
+    //   - Atualizar entry existente (mudar status): apenas admin autenticado
+    "bookings": {
+      ".read": "auth != null",
+
+      "$bookingId": {
+        ".write": "auth != null || !data.exists()",
+
+        // Validação mínima ao criar
+        ".validate": "newData.hasChildren(['unidadeSlug','servicoId','servicoNome',
+                       'dataSelecionada','horaSelecionada','nomeCliente',
+                       'telefoneCliente','status'])"
+      }
+    }
+  }
+}
