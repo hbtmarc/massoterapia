@@ -73,19 +73,6 @@ export function render() {
       </div>`;
   }
 
-  const dias = obterProximos14DiasUteis();
-
-  const diasHTML = dias.map(iso => {
-    const { dia, mes, semana } = formatarData(iso);
-    return `
-      <button class="date-btn" data-iso="${iso}" type="button"
-              aria-label="${semana}, ${dia} de ${mes}">
-        <span class="d-week">${semana}</span>
-        <span class="d-day">${dia}</span>
-        <span class="d-month">${mes}</span>
-      </button>`;
-  }).join('');
-
   return `
     <div class="container">
       <nav class="steps" aria-label="Localização na jornada">
@@ -124,7 +111,7 @@ export function render() {
           📅 Escolha o dia
         </h2>
         <div class="date-scroll" role="listbox" aria-label="Dias disponíveis" id="date-scroll">
-          ${diasHTML}
+          <p style="color:var(--text-muted);font-size:.85rem;padding:.25rem 0;">Carregando…</p>
         </div>
       </section>
 

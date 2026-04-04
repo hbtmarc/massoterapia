@@ -22,6 +22,13 @@ function formatarDataBR(isoStr) {
   return `${diaSemana[date.getDay()]}, ${d} de ${mesNome[m - 1]} de ${y}`;
 }
 
+/** Calcula o horário de término dado início ("HH:MM") + duração em minutos */
+function _horaFim(inicio, duracao) {
+  const [h, m] = inicio.split(':').map(Number);
+  const totalMin = h * 60 + m + duracao;
+  return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;  
+}
+
 function formatarPreco(s) {
   if (!s) return '—';
   if (s.precoTexto) return s.precoTexto;
@@ -89,7 +96,7 @@ export function render() {
         </div>
         <div class="summary-row">
           <span class="summary-label">Horário</span>
-          <span class="summary-value">${horaSelecionada}</span>
+          <span class="summary-value">${horaSelecionada}–${_horaFim(horaSelecionada, servicoSelecionado.duracao)}</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Valor</span>
@@ -224,6 +231,7 @@ export function mount(container) {
         unidadeSlug:     estado.unidadeSlug || 'raquel',
         servicoId:       estado.servicoSelecionado.id,
         servicoNome:     estado.servicoSelecionado.nome,
+        duracao:         estado.servicoSelecionado.duracao,
         dataSelecionada: estado.dataSelecionada,
         horaSelecionada: estado.horaSelecionada,
         nomeCliente:     nome,

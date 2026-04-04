@@ -578,16 +578,19 @@ input::placeholder { color: var(--text-muted); }
 .admin-placeholder h2  { font-size: 1.3rem; color: var(--text); font-weight: 800; }
 .admin-placeholder p   { font-size: .93rem; margin-top: .4rem; }
 .admin-badge {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: .3rem .9rem;
-  background: var(--gold-pale);
-  border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
-  border-radius: var(--radius-pill);
-  font-size: .8rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 .38rem;
+  background: #e03131;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  letter-spacing: 0;
 }
 
 /* ============================================================
@@ -815,4 +818,88 @@ input::placeholder { color: var(--text-muted); }
   background: var(--bg-accent);
   color: var(--primary);
   font-weight: 600;
+}
+/* ─── remove o checkbox nativo: aparência já é dada pelo label ─────── */
+.dia-check input[type="checkbox"] {
+  display: none;
+}
+
+/* ============================================================
+   Admin — seções de configuração (.cfg-*)
+   ============================================================ */
+.cfg-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: .85rem;
+}
+
+.cfg-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin: 0 0 .75rem;
+}
+
+.cfg-row-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: .4rem;
+}
+
+/* Linha "Das HH:MM às HH:MM" */
+.cfg-pair {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.cfg-pair-de,
+.cfg-pair-sep {
+  font-size: .82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 1.8rem;
+}
+
+.cfg-time {
+  flex: 1;
+  min-height: 44px;
+  padding: .5rem .65rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text);
+  font: inherit;
+  font-size: .95rem;
+  transition: border-color var(--transition);
+}
+.cfg-time:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.cfg-select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: .5rem .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text);
+  font: inherit;
+  font-size: .95rem;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.cfg-select:focus {
+  outline: none;
+  border-color: var(--primary);
 }

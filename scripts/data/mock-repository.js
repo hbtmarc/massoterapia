@@ -7,6 +7,15 @@
  * TODO (Firebase): remover este arquivo e usar firebase-repository.js.
  */
 
+import {
+  GRANULARITY,
+  hhmm,
+  minToHH,
+  validarNegocio,
+  slotEstaLivre,
+  bloqueadosParaSet,
+} from './slot-utils.js';
+
 /* ============================================================
    Informações do negócio
    ============================================================ */
@@ -218,39 +227,31 @@ export function obterProximos14DiasUteis(diasAtivos = [1, 2, 3, 4, 5]) {
  * @param {object|null} config — configuração de agenda (opcional, usa defaults se null)
  */
 export function gerarHorarios(dataISO, duracao, ocupados = [], config = null) {
-  function _hhmm(s) {
-    const [h = 0, m = 0] = (s || '').split(':').map(Number);
-    return h * 60 + m;
-  }
-
   const diasAtivos = config?.diasAtivos ?? [1, 2, 3, 4, 5];
-  const INICIO     = _hhmm(config?.horaInicio   ?? '09:00');
-  const FIM        = _hhmm(config?.horaFim       ?? '18:00');
-  const ALMOCO_INI = _hhmm(config?.almocoInicio  ?? '12:00');
-  const ALMOCO_FIM = _hhmm(config?.almocoFim     ?? '13:00');
-  // intervalo = 0 → sessões consecutivas (passo = duração do serviço)
-  const raw        = config?.intervalo ?? 15;
-  const INTERVALO  = raw === 0 ? duracao : raw;
+  const INICIO     = hhmm(config?.horaInicio   ?? '09:00');
+  const FIM        = hhmm(config?.horaFim       ?? '18:00');
+  const ALMOCO_INI = hhmm(config?.almocoInicio  ?? '12:00');
+  const ALMOCO_FIM = hhmm(config?.almocoFim     ?? '13:00');
 
   const date = new Date(dataISO + 'T00:00:00');
   if (!diasAtivos.includes(date.getDay())) return [];
 
+  // Set de minutos bloqueados — cobre todos os bloqueios do dia
+  const bloqueados = bloqueadosParaSet(ocupados, dataISO);
+
   const horarios = [];
 
-  for (let min = INICIO; min + duracao <= FIM; min += INTERVALO) {
-    const fimSlot = min + duracao;
-
-    // Pula slots que caem no horário de almoço
-    if (min >= ALMOCO_INI && min < ALMOCO_FIM) continue;
-    if (min < ALMOCO_INI && fimSlot > ALMOCO_INI) continue;
-
-    const hora = _minToHH(min);
-    const ocupado = ocupados.some(o => {
-      if (o.data !== undefined) return o.data === dataISO && o.hora === hora;
-      return o.hora === hora;
+  // Passo sempre = granularidade (15 min).
+  // Regra de exibição:
+  //   • validarNegocio() falso → horário impossível (almoço/overflow) → NAO mostrar
+  //   • validarNegocio() ok  + slotEstaLivre() falso → slot ocupado por booking → mostrar como indisponível
+  //   • ambos ok → disponível
+  for (let min = INICIO; min + duracao <= FIM; min += GRANULARITY) {
+    if (!validarNegocio(min, duracao, ALMOCO_INI, ALMOCO_FIM, FIM)) continue;
+    horarios.push({
+      hora:       minToHH(min),
+      disponivel: slotEstaLivre(min, duracao, bloqueados),
     });
-
-    horarios.push({ hora, disponivel: !ocupado });
   }
 
   return horarios;
@@ -259,13 +260,6 @@ export function gerarHorarios(dataISO, duracao, ocupados = [], config = null) {
 /* ============================================================
    Helpers privados
    ============================================================ */
-
-/** Converte minutos (ex: 570) para string "HH:MM" */
-function _minToHH(min) {
-  const h = String(Math.floor(min / 60)).padStart(2, '0');
-  const m = String(min % 60).padStart(2, '0');
-  return `${h}:${m}`;
-}
 
 /** Converte Date para "YYYY-MM-DD" usando timezone local */
 function _isoDate(date) {

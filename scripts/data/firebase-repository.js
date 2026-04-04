@@ -2,16 +2,25 @@
  * firebase-repository.js — Camada de dados real (Firebase RTDB + Auth)
  *
  * Esquema RTDB:
- *   /bookings/{bookingId}            — dado completo de cada agendamento
- *   /slotLocks/{unidadeSlug}/{date}/{time}
- *                                    — lock atômico do slot
- *                                      (date = "YYYY-MM-DD", time = "HH-MM")
+ *   /bookings/{bookingId}                      — registro completo do agendamento
+ *     ├ duracao        (minutos)
+ *     ├ horaSelecionada / horaFim
+ *     ├ slots          (["09-00","09-15","09-30","09-45"]) — chaves reservadas
+ *     └ status         pending | confirmed | rejected | cancelled
  *
- * Regra de bloqueio:
- *   status "pending" ou "confirmed"  → slot bloqueado
- *   status "rejected" ou "cancelled" → lock removido, slot liberto
+ *   /slotLocks/{unidadeSlug}/{YYYY-MM-DD}/{HH-MM}
+ *                                              — lock at\u00f4mico de cada fatia de 15 min
+ *                                                ex.: 09:00 + 60 min \u2192 4 chaves
  *
- * Versão Firebase pinada: 12.11.0  (manter em sincronia com firebase-config.js)
+ * Prote\u00e7\u00e3o contra double-booking:
+ *   A transa\u00e7\u00e3o em criarAgendamento opera no n\u00f3 do DIA inteiro,
+ *   verificando E reservando todas as fatias atomicamente.
+ *
+ * Libera\u00e7\u00e3o de slots:
+ *   status "pending" ou "confirmed"   \u2192 fatias bloqueadas
+ *   status "rejected" ou "cancelled"  \u2192 TODAS as fatias removidas (bloco liberado)
+ *
+ * Vers\u00e3o Firebase pinada: 12.11.0  (manter em sincronia com firebase-config.js)
  */
 
 // ─── CDN imports ────────────────────────────────────────────────────────────
@@ -30,27 +39,21 @@ import {
 
 import { db } from '../firebase-config.js';
 
+import {
+  hhmm,
+  minToHH,
+  horaParaChave,
+  chaveParaHora,
+  expandirSlots,
+} from './slot-utils.js';
+
 // ─── Constante da unidade ────────────────────────────────────────────────────
 // Slug convertido para caminho RTDB: "raquel" → path "raquel"
 // O caminho de lock usa o slug informado (ex.: "raquel")
 const UNIDADE_PATH = slug => slug;          // extensível para multi-profissional
 
 // ─── Helpers internos ────────────────────────────────────────────────────────
-
-/** Converte "HH:MM" em "HH-MM" para uso como chave RTDB (sem caracteres proibidos) */
-function horaParaChave(hora) {
-  return hora.replace(':', '-');
-}
-
-/** Inverte: "HH-MM" → "HH:MM" */
-function chaveParaHora(chave) {
-  return chave.replace('-', ':');
-}
-
-/** Referência de um lock específico */
-function lockRef(unidadeSlug, dataISO, hora) {
-  return ref(db, `slotLocks/${UNIDADE_PATH(unidadeSlug)}/${dataISO}/${horaParaChave(hora)}`);
-}
+// horaParaChave / chaveParaHora / expandirSlots vêm de slot-utils.js
 
 // ─── API pública ──────────────────────────────────────────────────────────────
 
@@ -103,21 +106,34 @@ export async function obterSlotsBloqueados(unidadeSlug, dataISO) {
  * @returns {Promise<{ ok: true, bookingId: string } | { ok: false, conflito: boolean, erro: string }>}
  */
 export async function criarAgendamento(dados) {
-  const { unidadeSlug, dataSelecionada, horaSelecionada } = dados;
-  const slotRef = lockRef(unidadeSlug, dataSelecionada, horaSelecionada);
+  const { unidadeSlug, dataSelecionada, horaSelecionada, duracao } = dados;
 
-  let bookingsRef;
-  let committed  = false;
+  // Todas as fatias de 15 min que este agendamento ocupa
+  // Ex.: 09:00 + 60 min → ["09-00","09-15","09-30","09-45"]
+  const slots   = expandirSlots(horaSelecionada, duracao);
+  const horaFim = minToHH(hhmm(horaSelecionada) + duracao);
+  const dayRef  = ref(db, `slotLocks/${UNIDADE_PATH(unidadeSlug)}/${dataSelecionada}`);
 
+  let committed = false;
+
+  // Transação atômica no nó do DIA inteiro:
+  // verifica E reserva todas as fatias de uma só vez.
+  // Se qualquer fatia estiver ocupada → aborta (retorna undefined).
   try {
-    // Reserva atômica do slot
-    const resultado = await runTransaction(slotRef, currentData => {
-      if (currentData !== null) {
-        // Slot já ocupado — aborta a transação (retornando undefined)
-        return undefined;
+    const resultado = await runTransaction(dayRef, currentDay => {
+      const day = currentDay || {};
+
+      // Verificar: todas as fatias devem estar livres
+      for (const key of slots) {
+        if (day[key] != null) return undefined; // aborta — slot já tomado
       }
-      // Marcador temporário — será atualizado com o bookingId após push
-      return { status: 'pending', bookingId: '__pendente__' };
+
+      // Reservar: marca cada fatia como pendente
+      const newDay = { ...day };
+      for (const key of slots) {
+        newDay[key] = { bookingId: '__pendente__', status: 'pending' };
+      }
+      return newDay;
     });
 
     committed = resultado.committed;
@@ -129,34 +145,48 @@ export async function criarAgendamento(dados) {
     return {
       ok:       false,
       conflito: true,
-      erro:     'Este horário acabou de ser reservado. Por favor, escolha outro.',
+      erro:     'Este horário foi reservado agora por outro cliente. Por favor, escolha outro.',
     };
   }
 
   // Persiste o agendamento completo
+  let bookingId;
   try {
-    bookingsRef = push(ref(db, 'bookings'));
-    const bookingId = bookingsRef.key;
+    const bookingsRef = push(ref(db, 'bookings'));
+    bookingId = bookingsRef.key;
 
     await set(bookingsRef, {
       unidadeSlug,
       servicoId:       dados.servicoId,
       servicoNome:     dados.servicoNome,
+      duracao,
       dataSelecionada,
       horaSelecionada,
+      horaFim,
+      slots,               // ex.: ["09-00","09-15","09-30","09-45"]
       nomeCliente:     dados.nomeCliente,
       telefoneCliente: dados.telefoneCliente,
       status:          'pending',
       criadoEm:        serverTimestamp(),
     });
 
-    // Atualiza o lock com o ID real
-    await update(slotRef, { bookingId });
+    // Atualiza cada fatia com o ID real do agendamento
+    const lockUpdates = {};
+    for (const key of slots) {
+      lockUpdates[key] = { bookingId, status: 'pending' };
+    }
+    await update(dayRef, lockUpdates);
 
     return { ok: true, bookingId };
   } catch (err) {
-    // Rollback do lock se o push falhou
-    try { await remove(slotRef); } catch (_) { /* ignora */ }
+    // Rollback: libera todas as fatias reservadas
+    try {
+      const rollback = {};
+      for (const key of slots) { rollback[key] = null; }
+      await update(dayRef, rollback);
+    } catch (rollbackErr) {
+      console.error('[booking] rollback falhou, slots podem estar presos:', rollbackErr);
+    }
     return { ok: false, conflito: false, erro: err.message };
   }
 }
@@ -167,18 +197,40 @@ export async function criarAgendamento(dados) {
  * @returns {Promise<Array<{ id: string, [campo]: any }>>}
  */
 export async function listarAgendamentos() {
-  const snapshot = await get(
-    query(ref(db, 'bookings'), orderByChild('criadoEm'))
-  );
+  let snapshot;
+  try {
+    snapshot = await get(query(ref(db, 'bookings'), orderByChild('criadoEm')));
+  } catch (err) {
+    if (err.message && err.message.includes('Index not defined')) {
+      console.warn('[bookings] Índice ausente no Firebase — ordenando em memória...');
+      snapshot = await get(ref(db, 'bookings'));
+    } else {
+      throw err;
+    }
+  }
 
-  if (!snapshot.exists()) return [];
+  if (!snapshot.exists()) {
+    console.log('[bookings] Nó /bookings vazio ou ausente no RTDB.');
+    return [];
+  }
 
   const lista = [];
-  snapshot.forEach(child => {
-    lista.push({ id: child.key, ...child.val() });
-  });
+  snapshot.forEach(child => lista.push({ id: child.key, ...child.val() }));
+  lista.sort((a, b) => (b.criadoEm ?? 0) - (a.criadoEm ?? 0));
+  console.log(`[bookings] ${lista.length} agendamento(s) carregado(s).`);
+  return lista;
+}
 
-  return lista.reverse();           // mais recentes primeiro
+/**
+ * Exclui permanentemente um agendamento rejeitado do RTDB.
+ * Só deve ser chamada para bookings com status "rejected".
+ *
+ * @param {string} bookingId
+ * @returns {Promise<void>}
+ */
+export async function deletarAgendamento(bookingId) {
+  await remove(ref(db, `bookings/${bookingId}`));
+  console.log(`[bookings] Agendamento ${bookingId} excluído.`);
 }
 
 /**
@@ -191,13 +243,15 @@ export async function listarAgendamentos() {
 export async function confirmarAgendamento(bookingId) {
   await update(ref(db, `bookings/${bookingId}`), { status: 'confirmed' });
 
-  // Atualiza o status no lock também (para futuras leituras de disponibilidade)
   const booking = (await get(ref(db, `bookings/${bookingId}`))).val();
   if (booking) {
-    await update(
-      lockRef(booking.unidadeSlug, booking.dataSelecionada, booking.horaSelecionada),
-      { status: 'confirmed' }
-    );
+    const dayRef = ref(db, `slotLocks/${UNIDADE_PATH(booking.unidadeSlug)}/${booking.dataSelecionada}`);
+    const slots  = _resolverSlots(booking);
+    const lockUpdates = {};
+    for (const key of slots) {
+      lockUpdates[key] = { bookingId, status: 'confirmed' };
+    }
+    await update(dayRef, lockUpdates);
   }
 }
 
@@ -224,7 +278,31 @@ export async function cancelarAgendamento(bookingId) {
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
 
-// ─── Configuração de agenda ─────────────────────────────────────────────────
+/**
+ * Retorna o array de chaves de fatias ("HH-MM") de um agendamento.
+ * Usa booking.slots quando disponível (novos); reconstrói via duracao para legados.
+ */
+function _resolverSlots(booking) {
+  if (Array.isArray(booking.slots) && booking.slots.length > 0) return booking.slots;
+  return expandirSlots(booking.horaSelecionada, booking.duracao || 60);
+}
+
+async function _finalizarAgendamento(bookingId, novoStatus) {
+  const bookingSnap = await get(ref(db, `bookings/${bookingId}`));
+  if (!bookingSnap.exists()) return;
+
+  const b = bookingSnap.val();
+
+  // Atualiza status do booking
+  await update(ref(db, `bookings/${bookingId}`), { status: novoStatus });
+
+  // Remove TODAS as fatias reservadas — libera o bloco inteiro
+  const slots  = _resolverSlots(b);
+  const dayRef = ref(db, `slotLocks/${UNIDADE_PATH(b.unidadeSlug)}/${b.dataSelecionada}`);
+  const removes = {};
+  for (const key of slots) { removes[key] = null; }
+  await update(dayRef, removes);
+}
 
 const CONFIG_PADRAO = {
   diasAtivos:   [1, 2, 3, 4, 5],   // 0=Dom … 6=Sáb
@@ -250,7 +328,8 @@ export async function obterConfigAgenda(unidadeSlug) {
       ? val.diasAtivos
       : Object.values(val.diasAtivos ?? {}).map(Number);
     return { ...CONFIG_PADRAO, ...val, diasAtivos };
-  } catch {
+  } catch (err) {
+    console.error('[config] Erro ao ler configAgenda — verifique as regras do RTDB:', err.message);
     return { ...CONFIG_PADRAO };
   }
 }
@@ -262,17 +341,4 @@ export async function obterConfigAgenda(unidadeSlug) {
  */
 export async function salvarConfigAgenda(unidadeSlug, config) {
   await set(ref(db, `config/${UNIDADE_PATH(unidadeSlug)}/agenda`), config);
-}
-
-async function _finalizarAgendamento(bookingId, novoStatus) {
-  const bookingSnap = await get(ref(db, `bookings/${bookingId}`));
-  if (!bookingSnap.exists()) return;
-
-  const b = bookingSnap.val();
-
-  // Atualiza status do booking
-  await update(ref(db, `bookings/${bookingId}`), { status: novoStatus });
-
-  // Remove o lock → libera o slot
-  await remove(lockRef(b.unidadeSlug, b.dataSelecionada, b.horaSelecionada));
 }

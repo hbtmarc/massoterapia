@@ -22,6 +22,7 @@ import {
   confirmarAgendamento,
   rejeitarAgendamento,
   cancelarAgendamento,
+  deletarAgendamento,
   obterConfigAgenda,
   salvarConfigAgenda,
 }                                                            from '../data/firebase-repository.js';
@@ -36,6 +37,16 @@ function formatarDataCurta(isoStr) {
   const [y, m, d] = isoStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return `${diaSemana[date.getDay()]}, ${d} ${mesNome[m - 1]}`;
+}
+
+/** Minutos → "1h", "45 min", "1h 30min" */
+function _formatMin(min) {
+  if (!min) return '';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h && m) return `${h}h ${m}min`;
+  if (h)      return `${h}h`;
+  return `${m} min`;
 }
 
 const LABEL_STATUS = {
@@ -102,7 +113,7 @@ function _htmlLogin(erroMsg = '') {
     </div>`;
 }
 
-function _htmlDashboard(agendamentos, abaAtiva, secao, configAgenda) {
+function _htmlDashboard(agendamentos, abaAtiva, secao, configAgenda, erroBookings) {
   const pendentes = agendamentos.filter(a => a.status === 'pending').length;
 
   return `
@@ -131,12 +142,20 @@ function _htmlDashboard(agendamentos, abaAtiva, secao, configAgenda) {
       </div>
 
       ${secao === 'agendamentos'
-        ? _htmlAgendamentosSection(agendamentos, abaAtiva)
+        ? _htmlAgendamentosSection(agendamentos, abaAtiva, erroBookings)
         : _htmlConfigSection(configAgenda)}
     </div>`;
 }
 
-function _htmlAgendamentosSection(agendamentos, abaAtiva) {
+function _htmlAgendamentosSection(agendamentos, abaAtiva, erroBookings) {
+  // Banner de erro quando o Firebase negou a leitura
+  if (erroBookings) {
+    return `
+      <div style="background:#fff8f0;border:1px solid #f5d6a6;border-radius:.6rem;
+                  padding:.85rem 1rem;font-size:.85rem;color:#a0620a;line-height:1.5;">
+        ⚠️ <strong>Erro ao carregar agendamentos</strong><br/>${erroBookings}
+      </div>`;
+  }
   const abas = [
     { key: 'pending',   label: 'Pendentes'   },
     { key: 'confirmed', label: 'Confirmados' },
@@ -170,45 +189,51 @@ function _htmlConfigSection(config) {
   const diasHTML = NOME_DIA.map((nome, idx) => `
     <label class="dia-check">
       <input type="checkbox" name="dias" value="${idx}"
-             ${diasAtivos.includes(idx) ? 'checked' : ''}
-             style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;" />
+             ${diasAtivos.includes(idx) ? 'checked' : ''} />
       <span>${nome}</span>
     </label>`).join('');
 
   return `
     <form id="form-config" novalidate>
-      <h2 style="font-size:1rem;font-weight:700;margin-bottom:.85rem;">&#x1F4C5; Dias de atendimento</h2>
-      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem;">${diasHTML}</div>
 
-      <h2 style="font-size:1rem;font-weight:700;margin-bottom:.75rem;">&#x1F550; Horário de atendimento</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:1.5rem;">
-        <div class="form-group">
-          <label for="cf-ini">Abertura</label>
-          <input type="time" id="cf-ini" name="horaInicio" value="${cfg.horaInicio}" />
+      <!-- Dias -->
+      <div class="cfg-section">
+        <p class="cfg-section-title">&#x1F4C5; Dias de atendimento</p>
+        <div style="display:flex;flex-wrap:wrap;gap:.45rem;">${diasHTML}</div>
+      </div>
+
+      <!-- Horários -->
+      <div class="cfg-section">
+        <p class="cfg-section-title">&#x1F550; Horário de trabalho</p>
+
+        <p class="cfg-row-label">Expediente</p>
+        <div class="cfg-pair" style="margin-bottom:1rem;">
+          <span class="cfg-pair-de">Das</span>
+          <input type="time" id="cf-ini" name="horaInicio"
+                 class="cfg-time" value="${cfg.horaInicio}" />
+          <span class="cfg-pair-sep">às</span>
+          <input type="time" id="cf-fim" name="horaFim"
+                 class="cfg-time" value="${cfg.horaFim}" />
         </div>
-        <div class="form-group">
-          <label for="cf-fim">Encerramento</label>
-          <input type="time" id="cf-fim" name="horaFim" value="${cfg.horaFim}" />
-        </div>
-        <div class="form-group">
-          <label for="cf-alm-ini">Almoço início</label>
-          <input type="time" id="cf-alm-ini" name="almocoInicio" value="${cfg.almocoInicio}" />
-        </div>
-        <div class="form-group">
-          <label for="cf-alm-fim">Almoço fim</label>
-          <input type="time" id="cf-alm-fim" name="almocoFim" value="${cfg.almocoFim}" />
+
+        <p class="cfg-row-label">Interrupção (almoço)</p>
+        <div class="cfg-pair">
+          <span class="cfg-pair-de">Das</span>
+          <input type="time" id="cf-alm-ini" name="almocoInicio"
+                 class="cfg-time" value="${cfg.almocoInicio}" />
+          <span class="cfg-pair-sep">às</span>
+          <input type="time" id="cf-alm-fim" name="almocoFim"
+                 class="cfg-time" value="${cfg.almocoFim}" />
         </div>
       </div>
 
-      <div class="form-group" style="margin-bottom:1.5rem;">
-        <label for="cf-intervalo">Intervalo entre horários</label>
-        <select id="cf-intervalo" name="intervalo"
-                style="min-height:48px;padding:.6rem .9rem;border:1.5px solid var(--border);
-                       border-radius:var(--radius-sm);background:var(--bg-subtle);
-                       color:var(--text);font:inherit;font-size:1rem;width:100%;">
-          <option value="0"${cfg.intervalo === 0 ? ' selected' : ''}>Sem intervalo (sessões consecutivas)</option>
+      <!-- Intervalo -->
+      <div class="cfg-section">
+        <p class="cfg-section-title">&#x23F1; Intervalo entre sessões</p>
+        <select id="cf-intervalo" name="intervalo" class="cfg-select">
+          <option value="0"${cfg.intervalo === 0  ? ' selected' : ''}>Sem intervalo (sessões consecutivas)</option>
           ${[15,30,45,60].map(v =>
-            `<option value="${v}"${cfg.intervalo === v ? ' selected' : ''}>${v} min entre horários</option>`
+            `<option value="${v}"${cfg.intervalo === v ? ' selected' : ''}>${v} min de intervalo</option>`
           ).join('')}
         </select>
       </div>
@@ -247,6 +272,14 @@ function _htmlCard(a) {
           Cancelar
         </button>
       </div>`;
+    if (a.status === 'rejected') return `
+      <div class="admin-card-acoes">
+        <button class="btn btn--outline btn--sm admin-acao"
+                data-id="${a.id}" data-acao="deletar" type="button"
+                style="color:var(--danger);border-color:var(--danger);">
+          🗑 Excluir
+        </button>
+      </div>`;
     return '';
   })();
 
@@ -258,7 +291,7 @@ function _htmlCard(a) {
       </div>
       <div class="admin-card-info">
         <span>📅 ${a.dataSelecionada ? formatarDataCurta(a.dataSelecionada) : '—'}</span>
-        <span>🕘 ${a.horaSelecionada || '—'}</span>
+        <span>🕘 ${a.horaSelecionada || '—'}${a.horaFim ? `&nbsp;→&nbsp;${a.horaFim}` : ''}${a.duracao ? ` (${_formatMin(a.duracao)})` : ''}</span>
       </div>
       <div class="admin-card-info" style="margin-top:.25rem;">
         <span>👤 ${a.nomeCliente || '—'}</span>
@@ -284,6 +317,7 @@ export function mount(container) {
   let abaAtiva     = 'pending';
   let secao        = 'agendamentos';
   let configAgenda = null;
+  let erroBookings = null;   // null = ok, string = mensagem de erro
   let unsubAuth    = null;
 
   unsubAuth = onAuthStateChanged(auth, async user => {
@@ -316,21 +350,26 @@ export function mount(container) {
 
   async function _carregarEExibir() {
     container.innerHTML = `<div class="container" style="padding-top:3rem;text-align:center;"><p style="color:var(--text-muted);">Carregando…</p></div>`;
+
+    // Carrega agendamentos e config de forma independente:
+    // uma falha em um não derruba o outro.
     try {
-      [agendamentos, configAgenda] = await Promise.all([
-        listarAgendamentos(),
-        obterConfigAgenda('raquel'),
-      ]);
+      agendamentos = await listarAgendamentos();
+      erroBookings = null;
     } catch (err) {
-      console.error('[admin] Erro ao carregar dados:', err);
-      agendamentos = [];
-      configAgenda = null;
+      console.error('[admin] Erro ao listar agendamentos:', err);
+      agendamentos  = [];
+      erroBookings  = `Não foi possível carregar os agendamentos. Verifique as regras do Firebase RTDB (bookings: .read auth!=null) e recarregue a página. Detalhe: ${err.message}`;
     }
+
+    try { configAgenda = await obterConfigAgenda('raquel'); }
+    catch (err) { console.error('[admin] Erro ao carregar config:', err); configAgenda = null; }
+
     _renderDashboard();
   }
 
   function _renderDashboard() {
-    container.innerHTML = _htmlDashboard(agendamentos, abaAtiva, secao, configAgenda);
+    container.innerHTML = _htmlDashboard(agendamentos, abaAtiva, secao, configAgenda, erroBookings);
     _bindDashboard();
   }
 
@@ -357,7 +396,9 @@ export function mount(container) {
             if (acao === 'confirmar') await confirmarAgendamento(id);
             if (acao === 'rejeitar')  await rejeitarAgendamento(id);
             if (acao === 'cancelar')  await cancelarAgendamento(id);
+            if (acao === 'deletar')   await deletarAgendamento(id);
             agendamentos = await listarAgendamentos();
+            erroBookings = null;
             _renderDashboard();
           } catch (err) {
             console.error('[admin] Erro na ação:', err);
