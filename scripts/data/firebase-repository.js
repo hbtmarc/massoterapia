@@ -75,12 +75,18 @@ export async function obterSlotsBloqueados(unidadeSlug, dataISO) {
   }
 
   // snapshot.val() = { "10-00": { bookingId, status }, "14-30": { … }, … }
-  // Inclui data no retorno para compatibilidade com gerarHorarios()
-  const ocupados = Object.keys(snapshot.val()).map(chave => ({
-    data: dataISO,
-    hora: chaveParaHora(chave),
-  }));
-  console.log(`[slots] ${ocupados.length} slot(s) bloqueado(s) em ${dataISO}:`, ocupados.map(o => o.hora));
+  // Filtra apenas slots ATIVOS (pending ou confirmed).
+  // Slots de agendamentos já cancelados/rejeitados devem ter sido removidos,
+  // mas filtramos aqui como camada de segurança contra locks órfãos.
+  const val = snapshot.val();
+  const ocupados = Object.entries(val)
+    .filter(([, v]) => {
+      const s = typeof v === 'object' ? v?.status : null;
+      return !s || s === 'pending' || s === 'confirmed';
+    })
+    .map(([chave]) => ({ data: dataISO, hora: chaveParaHora(chave) }));
+
+  console.log(`[slots] ${ocupados.length} slot(s) ativo(s) em ${dataISO}:`, ocupados.map(o => o.hora));
   return ocupados;
 }
 
@@ -229,8 +235,19 @@ export async function listarAgendamentos() {
  * @returns {Promise<void>}
  */
 export async function deletarAgendamento(bookingId) {
+  // Lê o booking antes de deletar para saber quais locks remover
+  const snap = await get(ref(db, `bookings/${bookingId}`));
+  if (snap.exists()) {
+    const b = snap.val();
+    // Remove os slot locks caso ainda existam (ex.: booking deletado sem ter sido cancelado)
+    const slots  = _resolverSlots(b);
+    const dayRef = ref(db, `slotLocks/${UNIDADE_PATH(b.unidadeSlug)}/${b.dataSelecionada}`);
+    const removes = {};
+    for (const key of slots) { removes[key] = null; }
+    await update(dayRef, removes);
+  }
   await remove(ref(db, `bookings/${bookingId}`));
-  console.log(`[bookings] Agendamento ${bookingId} excluído.`);
+  console.log(`[bookings] Agendamento ${bookingId} excluído (slots liberados).`);
 }
 
 /**

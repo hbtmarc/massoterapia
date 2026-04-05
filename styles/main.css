@@ -178,6 +178,9 @@ button { cursor: pointer; font: inherit; border: none; background: none; }
 .btn--full  { width: 100%; }
 .btn--large { min-height: 56px; font-size: 1.08rem; }
 .btn--sm    { min-height: 38px; padding: .35rem .9rem; font-size: .88rem; font-weight: 500; }
+.btn--ghost { min-height: 34px; padding: .3rem .55rem; background: transparent; border-color: transparent;
+              color: var(--text-muted); font-size: .95rem; }
+.btn--ghost:hover { background: #f5e7e7; color: var(--danger); border-color: transparent; }
 
 /* ============================================================
    Cards
@@ -751,12 +754,26 @@ input::placeholder { color: var(--text-muted); }
    Admin — card de agendamento
    ============================================================ */
 .admin-card {
+  display: flex;
+  overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: .75rem;
-  padding: 1rem;
   margin-bottom: .75rem;
   box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+/* Barra colorida lateral — indica status visualmente */
+.admin-card-accent {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+/* Conteúdo do card */
+.admin-card-inner {
+  flex: 1;
+  padding: .9rem 1rem;
+  min-width: 0;
 }
 
 .admin-card-header {
@@ -764,28 +781,80 @@ input::placeholder { color: var(--text-muted); }
   align-items: flex-start;
   justify-content: space-between;
   gap: .5rem;
-  margin-bottom: .5rem;
+  margin-bottom: .65rem;
 }
 
 .admin-card-servico {
-  font-weight: 600;
+  font-weight: 700;
   font-size: .95rem;
   color: var(--text);
   line-height: 1.3;
 }
 
-.admin-card-status {
-  font-size: .78rem;
+/* Duração ao lado do nome do serviço */
+.admin-card-dur {
+  display: inline-block;
+  margin-left: .45rem;
+  padding: .1rem .45rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+/* Pílula de status colorida */
+.admin-card-pill {
+  flex-shrink: 0;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  font-size: .72rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.admin-card-info {
+/* Grid de metadados (data, hora, cliente, contato) */
+.admin-card-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: .5rem 1.25rem;
+  flex-direction: column;
+  gap: .3rem;
+  margin-bottom: .1rem;
+}
+
+.admin-card-meta-row {
+  display: grid;
+  grid-template-columns: 1.4rem 4.5rem 1fr;
+  align-items: baseline;
+  gap: 0 .35rem;
   font-size: .83rem;
-  color: var(--text-muted);
+}
+
+.acm-ic  { font-size: .8rem; line-height: 1; }
+.acm-lbl { color: var(--text-muted); font-size: .76rem; font-weight: 600; }
+.acm-val { color: var(--text); }
+.acm-val em { font-style: normal; color: var(--text-muted); }
+.acm-val strong { font-weight: 700; }
+
+/* Link e badge do WhatsApp */
+.admin-wa-link {
+  color: #1a7a3f;
+  text-decoration: none;
+  font-weight: 500;
+}
+.admin-wa-link:hover { text-decoration: underline; }
+.admin-wa-badge {
+  display: inline-block;
+  margin-left: .3rem;
+  padding: .1rem .35rem;
+  background: #e6f4ec;
+  border: 1px solid #b2d8c4;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #1a7a3f;
+  white-space: nowrap;
 }
 
 .admin-card-acoes {
@@ -795,6 +864,116 @@ input::placeholder { color: var(--text-muted); }
   margin-top: .75rem;
   padding-top: .75rem;
   border-top: 1px solid var(--border-soft);
+}
+
+/* ============================================================
+   Admin — vista de agenda (confirmados agrupados por dia)
+   ============================================================ */
+.aag-day {
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  overflow: hidden;
+  margin-bottom: .85rem;
+}
+
+.aag-day-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .6rem 1rem;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.aag-day-label {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.aag-day-count {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+}
+
+.aag-items { padding: .25rem 0; }
+
+.aag-item {
+  display: grid;
+  grid-template-columns: 6rem 1fr auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem 1rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+.aag-item:last-child { border-bottom: none; }
+
+.aag-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .07rem;
+  min-width: 0;
+}
+
+.aag-hora {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.aag-seta { font-size: .75rem; color: var(--text-muted); line-height: 1; }
+
+.aag-hora-fim {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.aag-dur {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: .05rem .38rem;
+  margin-top: .15rem;
+}
+
+.aag-detail { min-width: 0; }
+
+.aag-servico {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: .2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aag-cliente {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem .85rem;
+  font-size: .79rem;
+  color: var(--text-muted);
+}
+
+.aag-cancel-btn {
+  flex-shrink: 0;
+  color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  font-size: .75rem !important;
+  padding: .25rem .6rem !important;
 }
 
 /* ============================================================
@@ -903,3 +1082,123 @@ input::placeholder { color: var(--text-muted); }
   outline: none;
   border-color: var(--primary);
 }
+
+/* ============================================================
+   Config — exceções por dia
+   ============================================================ */
+.cfg-day-row {
+  padding: .55rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.cfg-day-row:last-child { border-bottom: none; }
+
+.cfg-day-toggle {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Visually styled toggle switch */
+.cfg-day-toggle input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 2.2rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-subtle);
+  position: relative;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  flex-shrink: 0;
+}
+.cfg-day-toggle input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: .2rem;
+  transform: translateY(-50%);
+  width: .85rem;
+  height: .85rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: left .15s, background .15s;
+}
+.cfg-day-toggle input[type="checkbox"]:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.cfg-day-toggle input[type="checkbox"]:checked::after {
+  left: calc(100% - 1.05rem);
+  background: #fff;
+}
+
+.cfg-day-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 2.5rem;
+}
+
+.cfg-day-default {
+  font-size: .78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.cfg-day-times {
+  padding: .5rem 0 .15rem 2.85rem;
+}
+
+/* ============================================================
+   Admin — modal de resposta WhatsApp
+   ============================================================ */
+.admin-wa-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+
+.admin-wa-modal--show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.admin-wa-modal-inner {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border-radius: 1.1rem 1.1rem 0 0;
+  padding: 1.5rem 1.25rem 2rem;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.1);
+  transform: translateY(2rem);
+  transition: transform .25s;
+}
+
+.admin-wa-modal--show .admin-wa-modal-inner {
+  transform: translateY(0);
+}
+
+.admin-wa-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+
+.admin-wa-modal-sub {
+  font-size: .87rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+

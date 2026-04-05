@@ -29,14 +29,24 @@ import {
 
 /* ---- Helpers -------------------------------------------------------- */
 
-const diaSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const mesNome   = ['jan','fev','mar','abr','mai','jun',
-                   'jul','ago','set','out','nov','dez'];
+const diaSemana = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const mesNome   = ['janeiro','fevereiro','março','abril','maio','junho',
+                   'julho','agosto','setembro','outubro','novembro','dezembro'];
+
+const diaSemana2 = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const mesNome2   = ['jan','fev','mar','abr','mai','jun',
+                    'jul','ago','set','out','nov','dez'];
 
 function formatarDataCurta(isoStr) {
   const [y, m, d] = isoStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
-  return `${diaSemana[date.getDay()]}, ${d} ${mesNome[m - 1]}`;
+  return `${diaSemana2[date.getDay()]}, ${d} ${mesNome2[m - 1]}`;
+}
+
+function formatarDataBR(isoStr) {
+  const [y, m, d] = isoStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return `${diaSemana[date.getDay()]}, ${d} de ${mesNome[m - 1]} de ${y}`;
 }
 
 /** Minutos → "1h", "45 min", "1h 30min" */
@@ -75,6 +85,56 @@ const CONFIG_PADRAO = {
 };
 
 /* ---- Templates HTML ------------------------------------------------- */
+
+/** Monta o link wa.me com mensagem personalizada por status */
+function _waConfirmLink(b, status) {
+  const digits = (b.telefoneCliente || '').replace(/\D/g, '');
+  if (!digits) return null;
+  const waNum  = digits.startsWith('55') ? digits : '55' + digits;
+  const nome   = b.nomeCliente || 'cliente';
+  const data   = b.dataSelecionada ? formatarDataBR(b.dataSelecionada) : '—';
+  const hora   = b.horaSelecionada || '—';
+  const fim    = b.horaFim  ? ` até ${b.horaFim}` : '';
+  const dur    = b.duracao  ? ` (${_formatMin(b.duracao)})` : '';
+  const servico = b.servicoNome || '—';
+
+  const st = status ?? b.status ?? 'confirmed';
+
+  let texto;
+  if (st === 'confirmed') {
+    texto =
+      `Olá, ${nome}! 🎉 Seu agendamento está confirmado!\n\n` +
+      `✅ Serviço: ${servico}\n` +
+      `📅 Data: ${data}\n` +
+      `🕘 Horário: ${hora}${fim}${dur}\n\n` +
+      `Lembre-se de chegar com alguns minutinhos de antecedência. Qualquer dúvida, pode me chamar aqui! 💚\n— Raquel`;
+  } else if (st === 'pending') {
+    texto =
+      `Olá, ${nome}! Recebemos a sua solicitação de agendamento 🙌\n\n` +
+      `📋 Serviço: ${servico}\n` +
+      `📅 Data: ${data}\n` +
+      `🕘 Horário: ${hora}${fim}${dur}\n\n` +
+      `Vou analisar e em breve confirmo! Qualquer dúvida, é só me chamar. 😊\n— Raquel`;
+  } else if (st === 'cancelled') {
+    texto =
+      `Olá, ${nome}. Informamos que o seu agendamento foi cancelado.\n\n` +
+      `❌ Serviço: ${servico}\n` +
+      `📅 Data: ${data}\n` +
+      `🕘 Horário: ${hora}${fim}${dur}\n\n` +
+      `Lamentamos o inconveniente. Entre em contato para reagendarmos! 💚\n— Raquel`;
+  } else if (st === 'rejected') {
+    texto =
+      `Olá, ${nome}. Infelizmente não conseguimos encaixar o seu pedido de agendamento no momento.\n\n` +
+      `📋 Serviço: ${servico}\n` +
+      `📅 Data solicitada: ${data}\n` +
+      `🕘 Horário solicitado: ${hora}${dur}\n\n` +
+      `Por favor, entre em contato para verificarmos uma nova data disponível. 💚\n— Raquel`;
+  } else {
+    texto = `Olá, ${nome}! Entre em contato para mais informações sobre seu agendamento.\n— Raquel`;
+  }
+
+  return `https://wa.me/${waNum}?text=${encodeURIComponent(texto)}`;
+}
 
 function _htmlLogin(erroMsg = '') {
   return `
@@ -171,20 +231,88 @@ function _htmlAgendamentosSection(agendamentos, abaAtiva, erroBookings) {
         ${a.label}${count > 0 ? ` <span class="admin-badge">${count}</span>` : ''}
       </button>`;
   }).join('');
-  const cardsHTML = filtrados.length === 0
-    ? `<p style="color:var(--text-muted);font-size:.9rem;padding:1.25rem 0;">
-         Nenhum agendamento nesta categoria.
-       </p>`
-    : filtrados.map(_htmlCard).join('');
+
+  let conteudoHTML;
+  if (filtrados.length === 0) {
+    conteudoHTML = `<p style="color:var(--text-muted);font-size:.9rem;padding:1.25rem 0;">
+      Nenhum agendamento nesta categoria.
+    </p>`;
+  } else if (abaAtiva === 'confirmed') {
+    conteudoHTML = _htmlAgendaConfirmados(filtrados);
+  } else {
+    conteudoHTML = filtrados.map(_htmlCard).join('');
+  }
 
   return `
     <div class="admin-tabs" role="tablist">${abasHTML}</div>
-    <div id="admin-lista">${cardsHTML}</div>`;
+    <div id="admin-lista">${conteudoHTML}</div>`;
+}
+
+/* Agenda inteligente para confirmados — agrupada por dia */
+function _htmlAgendaConfirmados(confirmados) {
+  const sorted = [...confirmados].sort((a, b) => {
+    const d = (a.dataSelecionada || '').localeCompare(b.dataSelecionada || '');
+    return d !== 0 ? d : (a.horaSelecionada || '').localeCompare(b.horaSelecionada || '');
+  });
+
+  const porDia = {};
+  for (const b of sorted) {
+    const key = b.dataSelecionada || 'sem-data';
+    (porDia[key] = porDia[key] || []).push(b);
+  }
+
+  return Object.entries(porDia).map(([data, bookings]) => {
+    const dataFmt = data !== 'sem-data' ? formatarDataCurta(data) : 'Data não definida';
+    const total   = bookings.length;
+
+    const itens = bookings.map(b => {
+      const waLink = _waConfirmLink(b);
+
+      return `
+        <div class="aag-item">
+          <div class="aag-time">
+            <span class="aag-hora">${b.horaSelecionada || '--:--'}</span>
+            ${b.horaFim ? `<span class="aag-seta">→</span><span class="aag-hora-fim">${b.horaFim}</span>` : ''}
+            ${b.duracao ? `<span class="aag-dur">${_formatMin(b.duracao)}</span>` : ''}
+          </div>
+          <div class="aag-detail">
+            <div class="aag-servico">${b.servicoNome || '—'}</div>
+            <div class="aag-cliente">
+              <span>👤 ${b.nomeCliente || '—'}</span>
+              ${waLink
+                ? `<a class="admin-wa-link" href="${waLink}" target="_blank" rel="noopener">📱 ${b.telefoneCliente} <span class="admin-wa-badge">WA ↗</span></a>`
+                : (b.telefoneCliente ? `<span>📱 ${b.telefoneCliente}</span>` : '')}
+            </div>
+          </div>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <button class="btn btn--outline btn--sm admin-acao aag-cancel-btn"
+                    data-id="${b.id}" data-acao="cancelar" type="button">
+              Cancelar
+            </button>
+            <button class="btn btn--ghost btn--sm admin-acao"
+                    data-id="${b.id}" data-acao="deletar" type="button"
+                    title="Excluir permanentemente">
+              🗑
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="aag-day">
+        <div class="aag-day-hdr">
+          <span class="aag-day-label">📅 ${dataFmt}</span>
+          <span class="aag-day-count">${total} sessão${total !== 1 ? 'ões' : ''}</span>
+        </div>
+        <div class="aag-items">${itens}</div>
+      </div>`;
+  }).join('');
 }
 
 function _htmlConfigSection(config) {
   const cfg = { ...CONFIG_PADRAO, ...(config || {}) };
-  const diasAtivos = cfg.diasAtivos ?? [1, 2, 3, 4, 5];
+  const diasAtivos    = cfg.diasAtivos ?? [1, 2, 3, 4, 5];
+  const horariosPorDia = cfg.horariosPorDia ?? {};
 
   const diasHTML = NOME_DIA.map((nome, idx) => `
     <label class="dia-check">
@@ -192,6 +320,33 @@ function _htmlConfigSection(config) {
              ${diasAtivos.includes(idx) ? 'checked' : ''} />
       <span>${nome}</span>
     </label>`).join('');
+
+  /* Seção de exceções por dia — só mostra dias que estão ativos */
+  const excecoesDiasHTML = NOME_DIA.map((nome, idx) => {
+    const ovr = horariosPorDia[idx] ?? {};
+    const ativo = diasAtivos.includes(idx);
+    if (!ativo) return `<div class="cfg-day-row cfg-day-row--inactive" data-weekday="${idx}" hidden></div>`;
+    const hasOvr = ovr.horaInicio || ovr.horaFim;
+    return `
+      <div class="cfg-day-row" data-weekday="${idx}">
+        <label class="cfg-day-toggle">
+          <input type="checkbox" class="dia-override-check" data-dia="${idx}"
+                 name="dia-override-${idx}" ${hasOvr ? 'checked' : ''} />
+          <span class="cfg-day-name">${nome}</span>
+          <span class="cfg-day-default">${hasOvr ? '' : 'Usa horário padrão'}</span>
+        </label>
+        <div class="cfg-day-times" ${hasOvr ? '' : 'hidden'}>
+          <div class="cfg-pair cfg-pair--sm">
+            <span class="cfg-pair-de">Das</span>
+            <input type="time" class="cfg-time" name="dia-ini-${idx}"
+                   value="${ovr.horaInicio ?? cfg.horaInicio}" />
+            <span class="cfg-pair-sep">às</span>
+            <input type="time" class="cfg-time" name="dia-fim-${idx}"
+                   value="${ovr.horaFim ?? cfg.horaFim}" />
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 
   return `
     <form id="form-config" novalidate>
@@ -202,9 +357,9 @@ function _htmlConfigSection(config) {
         <div style="display:flex;flex-wrap:wrap;gap:.45rem;">${diasHTML}</div>
       </div>
 
-      <!-- Horários -->
+      <!-- Horários padrão -->
       <div class="cfg-section">
-        <p class="cfg-section-title">&#x1F550; Horário de trabalho</p>
+        <p class="cfg-section-title">&#x1F550; Horário padrão de trabalho</p>
 
         <p class="cfg-row-label">Expediente</p>
         <div class="cfg-pair" style="margin-bottom:1rem;">
@@ -225,6 +380,15 @@ function _htmlConfigSection(config) {
           <input type="time" id="cf-alm-fim" name="almocoFim"
                  class="cfg-time" value="${cfg.almocoFim}" />
         </div>
+      </div>
+
+      <!-- Exceções por dia -->
+      <div class="cfg-section">
+        <p class="cfg-section-title">&#x1F4CC; Exceções por dia</p>
+        <p class="cfg-row-label" style="margin-bottom:.75rem;">
+          Personalize o horário de dias específicos (ex.: quarta até 21h)
+        </p>
+        <div id="cfg-excecoes">${excecoesDiasHTML}</div>
       </div>
 
       <!-- Intervalo -->
@@ -251,6 +415,18 @@ function _htmlCard(a) {
   const cor   = COR_STATUS[a.status]   || '#888';
   const label = LABEL_STATUS[a.status] || a.status;
 
+  // WhatsApp link
+  const waLink = _waConfirmLink(a);
+
+  const dataFmt = a.dataSelecionada ? formatarDataCurta(a.dataSelecionada) : '—';
+
+  const _btnExcluir = `
+        <button class="btn btn--ghost btn--sm admin-acao"
+                data-id="${a.id}" data-acao="deletar" type="button"
+                title="Excluir permanentemente">
+          🗑
+        </button>`;
+
   const acoesHTML = (() => {
     if (a.status === 'pending') return `
       <div class="admin-card-acoes">
@@ -263,6 +439,7 @@ function _htmlCard(a) {
                 style="color:var(--danger);border-color:var(--danger);">
           Rejeitar
         </button>
+        ${_btnExcluir}
       </div>`;
     if (a.status === 'confirmed') return `
       <div class="admin-card-acoes">
@@ -271,33 +448,52 @@ function _htmlCard(a) {
                 style="color:var(--danger);border-color:var(--danger);">
           Cancelar
         </button>
+        ${_btnExcluir}
       </div>`;
-    if (a.status === 'rejected') return `
+    if (a.status === 'rejected' || a.status === 'cancelled') return `
       <div class="admin-card-acoes">
-        <button class="btn btn--outline btn--sm admin-acao"
-                data-id="${a.id}" data-acao="deletar" type="button"
-                style="color:var(--danger);border-color:var(--danger);">
-          🗑 Excluir
-        </button>
+        ${_btnExcluir}
       </div>`;
     return '';
   })();
 
   return `
     <div class="admin-card" data-booking-id="${a.id}">
-      <div class="admin-card-header">
-        <span class="admin-card-servico">${a.servicoNome || '—'}</span>
-        <span class="admin-card-status" style="color:${cor};">${label}</span>
+      <div class="admin-card-accent" style="background:${cor};"></div>
+      <div class="admin-card-inner">
+        <div class="admin-card-header">
+          <div style="flex:1;min-width:0;">
+            <span class="admin-card-servico">${a.servicoNome || '—'}</span>
+            ${a.duracao ? `<span class="admin-card-dur">${_formatMin(a.duracao)}</span>` : ''}
+          </div>
+          <span class="admin-card-pill" style="background:${cor}20;color:${cor};">${label}</span>
+        </div>
+        <div class="admin-card-meta">
+          <div class="admin-card-meta-row">
+            <span class="acm-ic">📅</span>
+            <span class="acm-lbl">Data</span>
+            <span class="acm-val">${dataFmt}</span>
+          </div>
+          <div class="admin-card-meta-row">
+            <span class="acm-ic">🕘</span>
+            <span class="acm-lbl">Horário</span>
+            <span class="acm-val">${a.horaSelecionada || '—'}${a.horaFim ? ` → ${a.horaFim}` : ''}${a.duracao ? ` <em>(${_formatMin(a.duracao)})</em>` : ''}</span>
+          </div>
+          <div class="admin-card-meta-row">
+            <span class="acm-ic">👤</span>
+            <span class="acm-lbl">Cliente</span>
+            <span class="acm-val"><strong>${a.nomeCliente || '—'}</strong></span>
+          </div>
+          <div class="admin-card-meta-row">
+            <span class="acm-ic">📱</span>
+            <span class="acm-lbl">Contato</span>
+            <span class="acm-val">${waLink
+              ? `<a class="admin-wa-link" href="${waLink}" target="_blank" rel="noopener noreferrer">${a.telefoneCliente} <span class="admin-wa-badge">WhatsApp ↗</span></a>`
+              : (a.telefoneCliente || '—')}</span>
+          </div>
+        </div>
+        ${acoesHTML}
       </div>
-      <div class="admin-card-info">
-        <span>📅 ${a.dataSelecionada ? formatarDataCurta(a.dataSelecionada) : '—'}</span>
-        <span>🕘 ${a.horaSelecionada || '—'}${a.horaFim ? `&nbsp;→&nbsp;${a.horaFim}` : ''}${a.duracao ? ` (${_formatMin(a.duracao)})` : ''}</span>
-      </div>
-      <div class="admin-card-info" style="margin-top:.25rem;">
-        <span>👤 ${a.nomeCliente || '—'}</span>
-        <span>📱 ${a.telefoneCliente || '—'}</span>
-      </div>
-      ${acoesHTML}
     </div>`;
 }
 
@@ -390,10 +586,15 @@ export function mount(container) {
       container.querySelectorAll('.admin-acao').forEach(btn => {
         btn.addEventListener('click', async () => {
           const { id, acao } = btn.dataset;
-          const card = btn.closest('.admin-card');
-          card.querySelectorAll('button').forEach(b => { b.disabled = true; });
+          const card = btn.closest('.admin-card') ?? btn.closest('.aag-item');
+          card?.querySelectorAll('button').forEach(b => { b.disabled = true; });
           try {
-            if (acao === 'confirmar') await confirmarAgendamento(id);
+            if (acao === 'confirmar') {
+              await confirmarAgendamento(id);
+              // Encontra o booking para montar o link de resposta ao cliente
+              const booking = agendamentos.find(a => a.id === id);
+              if (booking) _mostrarModalWA(container, booking);
+            }
             if (acao === 'rejeitar')  await rejeitarAgendamento(id);
             if (acao === 'cancelar')  await cancelarAgendamento(id);
             if (acao === 'deletar')   await deletarAgendamento(id);
@@ -402,7 +603,7 @@ export function mount(container) {
             _renderDashboard();
           } catch (err) {
             console.error('[admin] Erro na ação:', err);
-            card.querySelectorAll('button').forEach(b => { b.disabled = false; });
+            card?.querySelectorAll('button').forEach(b => { b.disabled = false; });
             alert('Erro ao processar ação. Tente novamente.');
           }
         });
@@ -414,6 +615,27 @@ export function mount(container) {
       const msgEl     = container.querySelector('#cfg-msg');
       const btnSalvar = container.querySelector('#btn-salvar-config');
 
+      // Toggles de exceção por dia: mostrar/ocultar inputs de horário
+      form?.querySelectorAll('.dia-override-check').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const row = cb.closest('.cfg-day-row');
+          const times = row?.querySelector('.cfg-day-times');
+          const lbl   = row?.querySelector('.cfg-day-default');
+          if (!times) return;
+          times.hidden = !cb.checked;
+          if (lbl) lbl.textContent = cb.checked ? '' : 'Usa horário padrão';
+        });
+      });
+
+      // Quando altera os dias ativos, mostra/oculta as linhas de exceção
+      form?.querySelectorAll('[name="dias"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const idx = Number(cb.value);
+          const row = form.querySelector(`.cfg-day-row[data-weekday="${idx}"]`);
+          if (row) row.hidden = !cb.checked;
+        });
+      });
+
       form?.addEventListener('submit', async e => {
         e.preventDefault();
         const diasAtivos = [...form.querySelectorAll('[name="dias"]:checked')]
@@ -424,13 +646,25 @@ export function mount(container) {
           return;
         }
 
+        // Coleta exceções por dia
+        const horariosPorDia = {};
+        diasAtivos.forEach(idx => {
+          const ovrCb = form.querySelector(`[name="dia-override-${idx}"]`);
+          if (ovrCb?.checked) {
+            const ini = form.querySelector(`[name="dia-ini-${idx}"]`)?.value;
+            const fim = form.querySelector(`[name="dia-fim-${idx}"]`)?.value;
+            if (ini && fim) horariosPorDia[idx] = { horaInicio: ini, horaFim: fim };
+          }
+        });
+
         const novaConfig = {
           diasAtivos,
-          horaInicio:   form.querySelector('[name="horaInicio"]').value,
-          horaFim:      form.querySelector('[name="horaFim"]').value,
-          almocoInicio: form.querySelector('[name="almocoInicio"]').value,
-          almocoFim:    form.querySelector('[name="almocoFim"]').value,
-          intervalo:    Number(form.querySelector('[name="intervalo"]').value),
+          horaInicio:      form.querySelector('[name="horaInicio"]').value,
+          horaFim:         form.querySelector('[name="horaFim"]').value,
+          almocoInicio:    form.querySelector('[name="almocoInicio"]').value,
+          almocoFim:       form.querySelector('[name="almocoFim"]').value,
+          intervalo:       Number(form.querySelector('[name="intervalo"]').value),
+          horariosPorDia,
         };
 
         btnSalvar.disabled    = true;
@@ -448,6 +682,53 @@ export function mount(container) {
         }
       });
     }
+  }
+
+  function _mostrarModalWA(container, booking) {
+    const digits = (booking.telefoneCliente || '').replace(/\D/g, '');
+    if (!digits) return;   // sem telefone, não exibe
+
+    const waNum      = digits.startsWith('55') ? digits : '55' + digits;
+    const dataFmt    = booking.dataSelecionada ? formatarDataBR(booking.dataSelecionada) : '—';
+    const horaFmt    = booking.horaSelecionada || '—';
+    const horaFimFmt = booking.horaFim ? ` – ${booking.horaFim}` : '';
+    const nome       = booking.nomeCliente || 'cliente';
+
+    const msg = encodeURIComponent(
+      `Olá, ${nome}! 🎉 Seu agendamento foi confirmado!\n\n` +
+      `✅ Serviço: ${booking.servicoNome || '—'}\n` +
+      `📅 Data: ${dataFmt}\n` +
+      `🕘 Horário: ${horaFmt}${horaFimFmt}\n\n` +
+      `Aguardo você com prazer! 💚\n— Raquel`
+    );
+    const waLink = `https://wa.me/${waNum}?text=${msg}`;
+
+    // Remove modal anterior se existir
+    container.querySelector('.admin-wa-modal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'admin-wa-modal';
+    modal.innerHTML = `
+      <div class="admin-wa-modal-inner">
+        <p class="admin-wa-modal-title">✅ Agendamento confirmado!</p>
+        <p class="admin-wa-modal-sub">
+          Clique abaixo para enviar a confirmação para <strong>${nome}</strong>:
+        </p>
+        <a class="btn btn--whatsapp btn--full" href="${waLink}"
+           target="_blank" rel="noopener noreferrer">
+          💬 Avisar ${nome} pelo WhatsApp
+        </a>
+        <button class="btn btn--outline btn--full btn--sm" id="admin-wa-modal-close"
+                type="button" style="margin-top:.5rem;">
+          Fechar
+        </button>
+      </div>`;
+    container.appendChild(modal);
+    requestAnimationFrame(() => modal.classList.add('admin-wa-modal--show'));
+    modal.querySelector('#admin-wa-modal-close').addEventListener('click', () => {
+      modal.classList.remove('admin-wa-modal--show');
+      setTimeout(() => modal.remove(), 250);
+    });
   }
 
   function _mostrarMsg(el, texto, tipo) {

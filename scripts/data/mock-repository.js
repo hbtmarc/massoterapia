@@ -228,30 +228,38 @@ export function obterProximos14DiasUteis(diasAtivos = [1, 2, 3, 4, 5]) {
  */
 export function gerarHorarios(dataISO, duracao, ocupados = [], config = null) {
   const diasAtivos = config?.diasAtivos ?? [1, 2, 3, 4, 5];
-  const INICIO     = hhmm(config?.horaInicio   ?? '09:00');
-  const FIM        = hhmm(config?.horaFim       ?? '18:00');
-  const ALMOCO_INI = hhmm(config?.almocoInicio  ?? '12:00');
-  const ALMOCO_FIM = hhmm(config?.almocoFim     ?? '13:00');
 
+  // Calcula dia-da-semana antes para poder aplicar exceções por dia
   const date = new Date(dataISO + 'T00:00:00');
-  if (!diasAtivos.includes(date.getDay())) return [];
+  const dow  = date.getDay();
+  if (!diasAtivos.includes(dow)) return [];
+
+  // Exceções por dia (ex.: quarta até 21h) se não configurado usa o padrão global
+  const dayOvr = config?.horariosPorDia?.[dow] ?? {};
+  const INICIO     = hhmm(dayOvr.horaInicio   ?? config?.horaInicio   ?? '09:00');
+  const FIM        = hhmm(dayOvr.horaFim       ?? config?.horaFim       ?? '18:00');
+  const ALMOCO_INI = hhmm(dayOvr.almocoInicio  ?? config?.almocoInicio  ?? '12:00');
+  const ALMOCO_FIM = hhmm(dayOvr.almocoFim     ?? config?.almocoFim     ?? '13:00');
 
   // Set de minutos bloqueados — cobre todos os bloqueios do dia
   const bloqueados = bloqueadosParaSet(ocupados, dataISO);
 
   const horarios = [];
 
-  // Passo sempre = granularidade (15 min).
-  // Regra de exibição:
-  //   • validarNegocio() falso → horário impossível (almoço/overflow) → NAO mostrar
-  //   • validarNegocio() ok  + slotEstaLivre() falso → slot ocupado por booking → mostrar como indisponível
-  //   • ambos ok → disponível
+  // Regra de exibição (unificada):
+  //   • validarNegocio() falso → slot impossível (almoço/overflow)       → OCULTO
+  //   • slotEstaLivre()  falso → slot ou overlap com booking existente   → OCULTO
+  //   • ambos ok → disponível e visível
+  //
+  // Isso garante que:
+  //   - as fatias da reserva em si são ocultadas (ex.: 14:30–15:15)
+  //   - os horários ANTERIORES que terminariam dentro da reserva também
+  //     são ocultados (ex.: 13:45+1h = 14:45 cruza 14:30 → oculto)
+  //   - o próximo horário visível é exatamente o fim da sessão reservada
   for (let min = INICIO; min + duracao <= FIM; min += GRANULARITY) {
     if (!validarNegocio(min, duracao, ALMOCO_INI, ALMOCO_FIM, FIM)) continue;
-    horarios.push({
-      hora:       minToHH(min),
-      disponivel: slotEstaLivre(min, duracao, bloqueados),
-    });
+    if (!slotEstaLivre(min, duracao, bloqueados)) continue;
+    horarios.push({ hora: minToHH(min), disponivel: true });
   }
 
   return horarios;

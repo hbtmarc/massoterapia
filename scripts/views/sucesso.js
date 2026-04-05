@@ -56,9 +56,9 @@ export function render() {
       </div>`;
   }
 
-  /* Mensagem do WhatsApp pré-preenchida */
+  /* Mensagem do WhatsApp pré-preenchida — cliente avisa Raquel */
   const waMensagem = encodeURIComponent(
-    `Olá, Raquel! Confirmei meu agendamento pelo site:\n` +
+    `Olá, Raquel! Reservei um horário pelo site:\n` +
     `\u25aa Serviço: ${servicoSelecionado.nome}\n` +
     `\u25aa Data: ${formatarDataBR(dataSelecionada)}\n` +
     `\u25aa Horário: ${horaSelecionada}\n` +
