@@ -1,0 +1,436 @@
+MANUAL DE USO — ADMIN
+Raquel Maia Massoterapeuta
+
+========================================
+1. O QUE É ESTE PAINEL
+========================================
+
+O painel ADMIN é a área interna do sistema.
+Ele foi feito para a profissional gerenciar os agendamentos e configurar a agenda.
+
+Por meio dele, é possível:
+- entrar com login e senha;
+- visualizar pedidos de agendamento;
+- confirmar agendamentos;
+- rejeitar solicitações;
+- cancelar sessões;
+- excluir registros;
+- abrir conversa no WhatsApp com mensagem pronta;
+- configurar dias e horários de atendimento;
+- criar horários diferentes para dias específicos.
+
+
+========================================
+2. COMO ACESSAR O PAINEL
+========================================
+
+Passo a passo:
+1. Abra o site normalmente.
+2. Vá para a rota de administração:
+   #/admin
+3. Informe o e-mail e a senha cadastrados no Firebase Auth.
+4. Clique em "Entrar".
+
+Se o login estiver correto, o painel será carregado.
+Se estiver incorreto, o sistema exibirá uma mensagem de erro.
+
+
+========================================
+3. VISÃO GERAL DO PAINEL
+========================================
+
+Ao entrar, você verá duas áreas principais:
+
+1. Agenda
+2. Config
+
+Também existe o botão:
+- Sair
+
+
+========================================
+4. ABA "AGENDA"
+========================================
+
+A aba Agenda mostra os agendamentos organizados por status.
+
+Os status são:
+- Pendentes
+- Confirmados
+- Rejeitados
+- Cancelados
+
+Cada status aparece em forma de pílula.
+Quando existe quantidade naquele status, aparece um número em destaque, como notificação.
+
+
+========================================
+5. O QUE SIGNIFICA CADA STATUS
+========================================
+
+Pendente
+- É um pedido feito pelo cliente.
+- Ainda não foi validado pela profissional.
+- Enquanto estiver pendente, aquele horário já fica reservado no sistema.
+
+Confirmado
+- É um agendamento aceito pela profissional.
+- Continua bloqueando a agenda normalmente.
+- O cliente pode receber uma mensagem pronta pelo WhatsApp.
+
+Rejeitado
+- É um pedido que não foi aceito.
+- O horário é liberado novamente.
+- Pode ser usado quando não for possível atender naquele dia/horário.
+
+Cancelado
+- É um agendamento que existia, mas foi cancelado depois.
+- O horário também é liberado novamente.
+
+
+========================================
+6. COMO LER UM CARD DE AGENDAMENTO
+========================================
+
+Cada card mostra, de forma rápida:
+- nome do serviço;
+- duração da sessão;
+- status atual;
+- data do atendimento;
+- horário de início e fim;
+- nome do cliente;
+- telefone/WhatsApp do cliente.
+
+Além disso:
+- há uma barra lateral colorida para facilitar a leitura visual;
+- há uma pílula de status;
+- o telefone pode abrir o WhatsApp com mensagem pronta.
+
+
+========================================
+7. AÇÕES DISPONÍVEIS EM CADA AGENDAMENTO
+========================================
+
+Dependendo do status, você verá botões diferentes.
+
+Em Pendentes:
+- Confirmar
+- Rejeitar
+- Excluir
+
+Em Confirmados:
+- Cancelar
+- Excluir
+
+Em Rejeitados:
+- Excluir
+
+Em Cancelados:
+- Excluir
+
+
+========================================
+8. COMO FUNCIONA O BOTÃO "CONFIRMAR"
+========================================
+
+Ao clicar em "Confirmar":
+1. o status do agendamento muda para "Confirmado";
+2. o horário continua bloqueado na agenda;
+3. o sistema pode abrir uma ação rápida para WhatsApp;
+4. a mensagem enviada ao cliente já vai com os detalhes da sessão.
+
+Exemplo da mensagem:
+- serviço;
+- data;
+- horário;
+- duração;
+- texto profissional e acolhedor.
+
+Use esta ação quando quiser validar oficialmente o agendamento do cliente.
+
+
+========================================
+9. COMO FUNCIONA O BOTÃO "REJEITAR"
+========================================
+
+Ao clicar em "Rejeitar":
+1. o status vira "Rejeitado";
+2. o horário é liberado novamente na agenda;
+3. o cliente não permanece ocupando aquele período.
+
+Use quando o horário não puder ser atendido.
+
+
+========================================
+10. COMO FUNCIONA O BOTÃO "CANCELAR"
+========================================
+
+Ao clicar em "Cancelar":
+1. o status vira "Cancelado";
+2. o horário é liberado novamente;
+3. o registro continua visível na aba de cancelados, a menos que seja excluído depois.
+
+Use quando o atendimento já tinha sido aceito e depois precisou ser desmarcado.
+
+
+========================================
+11. COMO FUNCIONA O BOTÃO "EXCLUIR"
+========================================
+
+Ao clicar em "Excluir":
+1. o registro é removido do banco;
+2. os bloqueios de horário ligados a ele também são limpos;
+3. o agendamento deixa de aparecer no painel.
+
+Importante:
+- hoje a exclusão está liberada em todos os estados para facilitar testes;
+- no futuro, isso pode ser trocado por histórico em vez de exclusão definitiva.
+
+Use com atenção.
+
+
+========================================
+12. WHATSAPP NO PAINEL
+========================================
+
+O telefone do cliente é clicável.
+Ao clicar, o WhatsApp abre com mensagem pronta.
+
+As mensagens variam conforme o status do agendamento:
+- pendente;
+- confirmado;
+- cancelado;
+- rejeitado.
+
+Isso ajuda a profissional a responder mais rápido, sem precisar escrever tudo manualmente.
+
+
+========================================
+13. ABA "CONFIRMADOS" — VISÃO DE AGENDA
+========================================
+
+Na aba de confirmados, os atendimentos aparecem agrupados por dia.
+
+Essa visualização é útil para:
+- enxergar a agenda do dia;
+- ver quantas sessões existem em cada data;
+- identificar rapidamente horário, cliente e serviço;
+- abrir WhatsApp do cliente;
+- cancelar ou excluir com rapidez.
+
+É uma forma mais inteligente de acompanhar os atendimentos já aceitos.
+
+
+========================================
+14. ABA "CONFIG"
+========================================
+
+A aba Config serve para ajustar a agenda da profissional.
+
+Nela é possível configurar:
+- dias em que haverá atendimento;
+- horário padrão de início;
+- horário padrão de fim;
+- intervalo de almoço;
+- intervalo entre sessões;
+- exceções por dia da semana.
+
+
+========================================
+15. COMO CONFIGURAR OS DIAS DE ATENDIMENTO
+========================================
+
+Na seção "Dias de atendimento":
+- marque os dias que a profissional atende;
+- desmarque os dias em que não atende.
+
+Exemplo:
+- marcar segunda a sexta;
+- deixar sábado e domingo desativados.
+
+Somente os dias ativos aparecem para o cliente no agendamento.
+
+
+========================================
+16. COMO CONFIGURAR O HORÁRIO PADRÃO
+========================================
+
+Na seção de horário padrão, informe:
+- hora de início do expediente;
+- hora final do expediente.
+
+Exemplo:
+- início: 09:00
+- fim: 18:00
+
+Isso define a base de funcionamento da agenda.
+
+
+========================================
+17. COMO CONFIGURAR O ALMOÇO / INTERRUPÇÃO
+========================================
+
+Também existe a faixa de interrupção.
+
+Exemplo:
+- almoço: 12:00 às 13:00
+
+Nesse período, o sistema não oferece horários ao cliente.
+
+Se a profissional não quiser usar interrupção real, basta configurar uma faixa neutra ou alinhada à regra adotada no projeto.
+
+
+========================================
+18. COMO CONFIGURAR O INTERVALO ENTRE SESSÕES
+========================================
+
+A opção de intervalo define o espaçamento entre atendimentos.
+
+Exemplos:
+- sem intervalo;
+- 15 minutos;
+- 30 minutos;
+- 45 minutos;
+- 60 minutos.
+
+Isso ajuda a criar respiro entre uma sessão e outra.
+
+
+========================================
+19. COMO CONFIGURAR EXCEÇÕES POR DIA
+========================================
+
+Essa parte é muito importante.
+
+Ela existe para casos como:
+- quarta-feira até 21h;
+- sábado com horário reduzido;
+- um dia da semana com expediente diferente do padrão.
+
+Como usar:
+1. deixe o dia ativo na agenda;
+2. localize a seção de exceções por dia;
+3. ative o dia que terá horário especial;
+4. informe o novo horário para aquele dia;
+5. salve.
+
+Exemplo prático:
+- horário padrão: 09:00 às 18:00
+- quarta-feira: 09:00 às 21:00
+
+Resultado:
+- nos demais dias vale o padrão;
+- na quarta, o cliente vê horários até 21h.
+
+
+========================================
+20. COMO SALVAR AS CONFIGURAÇÕES
+========================================
+
+Depois de ajustar a agenda:
+1. clique em "Salvar configurações de agenda";
+2. aguarde a confirmação visual;
+3. se aparecer mensagem de sucesso, a configuração foi gravada.
+
+Se houver falha de conexão ou regra de acesso, o sistema mostrará erro.
+
+
+========================================
+21. COMO O BLOQUEIO DE HORÁRIOS FUNCIONA
+========================================
+
+O sistema não bloqueia apenas a hora inicial.
+Ele bloqueia toda a duração da sessão.
+
+Exemplo:
+- sessão de 1 hora;
+- início às 14:30.
+
+O sistema bloqueia internamente:
+- 14:30
+- 14:45
+- 15:00
+- 15:15
+
+Com isso:
+- ninguém consegue reservar um horário que se sobreponha a essa sessão;
+- o próximo horário real disponível será o primeiro depois do fim da sessão.
+
+Isso evita conflitos e garante coerência na agenda.
+
+
+========================================
+22. O QUE ACONTECE QUANDO O CLIENTE FAZ UM PEDIDO
+========================================
+
+Assim que o cliente conclui a solicitação:
+- o agendamento entra como "Pendente";
+- o horário já fica reservado;
+- ele aparece no painel;
+- a profissional decide se confirma ou rejeita.
+
+
+========================================
+23. ORDEM RECOMENDADA DE USO NO DIA A DIA
+========================================
+
+Fluxo recomendado:
+1. abrir o painel;
+2. verificar a aba Pendentes;
+3. confirmar ou rejeitar novos pedidos;
+4. acompanhar a aba Confirmados para organizar o dia;
+5. usar o WhatsApp rápido quando necessário;
+6. cancelar ou excluir apenas quando realmente fizer sentido;
+7. revisar a aba Config sempre que houver mudança de expediente.
+
+
+========================================
+24. CUIDADOS IMPORTANTES
+========================================
+
+- Evite excluir registros sem necessidade, principalmente em operação real.
+- Revise sempre os horários especiais por dia da semana.
+- Confirme se as regras do Firebase estão publicadas corretamente.
+- Faça testes sempre que mudar o horário padrão.
+- Verifique se o WhatsApp do cliente foi digitado corretamente.
+
+
+========================================
+25. POSSÍVEIS ERROS E O QUE FAZER
+========================================
+
+Se o painel não carregar agendamentos:
+- verificar login do admin;
+- verificar conexão com internet;
+- verificar regras do Firebase;
+- verificar se o índice de criadoEm foi publicado no RTDB.
+
+Se os horários não abrirem corretamente:
+- revisar a configuração da agenda;
+- verificar exceções por dia;
+- conferir se existe agendamento pendente ou confirmado naquele período.
+
+Se uma exclusão ou cancelamento não refletir:
+- atualizar a página;
+- revisar se o booking ainda existe no banco;
+- verificar se o ambiente Firebase está correto.
+
+
+========================================
+26. RESUMO FINAL PARA A PROFISSIONAL
+========================================
+
+O painel ADMIN foi feito para permitir uma operação simples, rápida e organizada.
+
+Em resumo:
+- Pendente = pedido aguardando decisão
+- Confirmado = sessão aceita e bloqueando agenda
+- Rejeitado = pedido negado e horário liberado
+- Cancelado = sessão desmarcada e horário liberado
+- Excluir = remove totalmente o registro
+
+A aba Config controla quando a agenda abre.
+A aba Agenda controla o que foi solicitado e o que foi aprovado.
+O WhatsApp rápido acelera o contato com o cliente.
+
+Fim do manual ADMIN.

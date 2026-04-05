@@ -1,0 +1,367 @@
+MANUAL DE USO — CLIENTES
+Raquel Maia Massoterapeuta
+
+========================================
+1. BEM-VINDO(A)
+========================================
+
+Este sistema foi criado para facilitar o agendamento das sessões.
+
+Com ele, você pode:
+- ver os serviços disponíveis;
+- escolher o melhor dia;
+- selecionar um horário livre;
+- informar seus dados;
+- enviar sua solicitação de agendamento;
+- entrar em contato com a profissional pelo WhatsApp.
+
+Tudo foi pensado para ser simples, rápido e fácil de usar.
+
+
+========================================
+2. COMO FUNCIONA O AGENDAMENTO
+========================================
+
+O processo acontece em etapas.
+
+Você vai:
+1. escolher um serviço;
+2. escolher o dia;
+3. escolher o horário;
+4. preencher nome e telefone;
+5. revisar as informações;
+6. concluir a solicitação.
+
+Depois disso, o pedido é enviado para análise da profissional.
+
+
+========================================
+3. PRIMEIRO PASSO — ESCOLHER O SERVIÇO
+========================================
+
+Ao entrar no site, você verá os serviços da profissional.
+
+Leia com calma:
+- nome do serviço;
+- descrição;
+- duração;
+- valor, quando informado.
+
+Quando encontrar o serviço desejado:
+- clique na opção de agendar;
+- o sistema levará você para a próxima etapa.
+
+
+========================================
+4. SEGUNDO PASSO — ESCOLHER O DIA
+========================================
+
+Depois de selecionar o serviço, o sistema mostrará os dias disponíveis.
+
+Esses dias são definidos conforme a agenda da profissional.
+
+Por isso:
+- nem todos os dias podem aparecer;
+- alguns dias podem ter horário diferente;
+- dias sem atendimento não ficam disponíveis.
+
+Basta tocar ou clicar no dia desejado.
+
+
+========================================
+5. TERCEIRO PASSO — ESCOLHER O HORÁRIO
+========================================
+
+Após escolher o dia, o sistema mostrará apenas os horários realmente disponíveis.
+
+Importante:
+- o sistema considera a duração completa da sessão;
+- se uma sessão durar 1 hora, ele bloqueia todo o período;
+- por isso, alguns horários não aparecem, mesmo que pareçam próximos.
+
+Exemplo:
+Se já existir um atendimento de 14:30 até 15:30,
+novos horários que se encaixariam dentro desse intervalo não serão exibidos.
+
+Isso evita conflitos e protege sua reserva.
+
+
+========================================
+6. POR QUE ALGUNS HORÁRIOS NÃO APARECEM?
+========================================
+
+Os horários podem deixar de aparecer por alguns motivos:
+- já existe outro agendamento naquele período;
+- a duração do serviço faria a sessão invadir outro atendimento;
+- o horário cruza o intervalo de almoço;
+- o horário ultrapassa o fim do expediente;
+- aquele dia possui regra especial de funcionamento.
+
+Se um horário não aparece, significa que ele não está disponível para aquele serviço naquele momento.
+
+
+========================================
+7. QUARTO PASSO — INFORMAR SEUS DADOS
+========================================
+
+Depois de escolher o horário, você deverá preencher:
+- seu nome;
+- seu telefone ou WhatsApp.
+
+Essas informações são importantes porque permitem que a profissional:
+- identifique o cliente;
+- confirme o atendimento;
+- entre em contato, se necessário.
+
+Preencha com atenção, principalmente o telefone.
+
+
+========================================
+8. QUINTO PASSO — REVISAR O AGENDAMENTO
+========================================
+
+Antes de finalizar, o sistema mostra um resumo com:
+- serviço escolhido;
+- duração da sessão;
+- data;
+- horário;
+- valor, quando houver.
+
+Nesta etapa, confira se está tudo certo.
+
+Se quiser mudar algo:
+- volte para a etapa anterior;
+- escolha outro horário;
+- revise novamente.
+
+
+========================================
+9. SEXTO PASSO — CONCLUIR A SOLICITAÇÃO
+========================================
+
+Ao clicar em confirmar:
+- sua solicitação será enviada;
+- o horário será reservado no sistema;
+- você verá a tela de sucesso.
+
+Importante:
+- isso significa que você reservou o horário pelo site;
+- a confirmação final do atendimento é feita pela profissional.
+
+
+========================================
+10. O QUE ACONTECE DEPOIS QUE EU TERMINO?
+========================================
+
+Depois de concluir:
+- o sistema salva sua solicitação;
+- a profissional visualiza o pedido no painel interno;
+- ela pode confirmar, rejeitar ou entrar em contato.
+
+Em seguida, você pode usar o botão de WhatsApp para falar com a profissional.
+
+
+========================================
+11. TELA DE SUCESSO
+========================================
+
+Ao finalizar, você verá:
+- mensagem de sucesso;
+- resumo do seu pedido;
+- botão para falar pelo WhatsApp;
+- opção para fazer novo agendamento;
+- opção para voltar ao início.
+
+Essa tela serve como comprovante visual da sua solicitação.
+
+
+========================================
+12. MENSAGEM DE WHATSAPP
+========================================
+
+O botão de WhatsApp abre uma mensagem pronta.
+
+Essa mensagem informa que você:
+- reservou um horário pelo site;
+- escolheu determinado serviço;
+- selecionou determinada data;
+- selecionou determinado horário.
+
+Isso facilita o contato inicial com a profissional.
+
+
+========================================
+13. O AGENDAMENTO JÁ FICA CONFIRMADO?
+========================================
+
+Não necessariamente.
+
+Hoje o sistema trabalha assim:
+- você faz a solicitação;
+- a profissional recebe o pedido;
+- ela avalia e confirma manualmente.
+
+Ou seja:
+- o horário fica reservado no sistema;
+- mas a confirmação do atendimento é feita pela Raquel.
+
+
+========================================
+14. O QUE SIGNIFICA QUANDO O HORÁRIO SOME?
+========================================
+
+Se um horário não está visível, isso geralmente significa que ele não pode ser reservado.
+
+Pode ser porque:
+- outra pessoa já reservou;
+- o horário colide com a duração de outra sessão;
+- o expediente do dia não cobre aquele horário;
+- existe pausa de atendimento naquele período.
+
+O sistema já tenta mostrar somente o que faz sentido para evitar confusão.
+
+
+========================================
+15. POSSO ESCOLHER QUALQUER HORÁRIO DO DIA?
+========================================
+
+Não.
+
+Você só pode escolher os horários que o sistema mostrar como disponíveis.
+
+Isso garante que:
+- a sessão caiba na agenda;
+- não haja sobreposição com outro cliente;
+- o atendimento respeite a duração correta do serviço.
+
+
+========================================
+16. POR QUE O TELEFONE É OBRIGATÓRIO?
+========================================
+
+O telefone é importante para que a profissional possa:
+- confirmar o atendimento;
+- avisar sobre qualquer mudança;
+- remarcar, se necessário;
+- responder dúvidas.
+
+Se o número estiver errado, pode ficar difícil concluir o contato.
+
+
+========================================
+17. COMO ESCOLHER O MELHOR HORÁRIO
+========================================
+
+Dicas simples:
+- escolha um horário em que você realmente possa comparecer;
+- confira a duração do serviço;
+- verifique se terá tempo suficiente para chegar com tranquilidade;
+- se estiver em dúvida, fale com a profissional pelo WhatsApp.
+
+
+========================================
+18. O QUE FAZER SE EU QUISER MUDAR DE HORÁRIO?
+========================================
+
+Se você ainda estiver no fluxo:
+- volte para a etapa anterior;
+- escolha outro horário;
+- revise novamente.
+
+Se já tiver enviado a solicitação:
+- entre em contato com a profissional pelo WhatsApp;
+- informe que deseja reagendar.
+
+
+========================================
+19. O QUE FAZER SE EU ERRAR ALGUM DADO?
+========================================
+
+Se perceber o erro antes de finalizar:
+- volte;
+- corrija;
+- envie novamente.
+
+Se perceber depois:
+- use o WhatsApp para avisar a profissional;
+- informe o nome correto, telefone correto ou qualquer ajuste necessário.
+
+
+========================================
+20. O QUE ACONTECE SE OUTRA PESSOA PEGAR O HORÁRIO ANTES?
+========================================
+
+O sistema possui proteção contra conflito.
+
+Se duas pessoas tentarem reservar ao mesmo tempo:
+- apenas uma conseguirá concluir;
+- a outra receberá uma mensagem pedindo para escolher outro horário.
+
+Isso evita dupla reserva.
+
+
+========================================
+21. O SITE FUNCIONA NO CELULAR?
+========================================
+
+Sim.
+
+O sistema foi pensado com foco em uso simples e boa experiência mobile.
+
+Por isso, ele possui:
+- visual leve;
+- botões fáceis de tocar;
+- grade de horários organizada;
+- navegação direta.
+
+
+========================================
+22. DICAS PARA UMA BOA EXPERIÊNCIA
+========================================
+
+Para usar melhor o sistema:
+- preencha seu nome corretamente;
+- informe um WhatsApp válido;
+- confira a data antes de finalizar;
+- confira o horário escolhido;
+- use a tela de sucesso como referência;
+- se tiver dúvida, fale com a profissional.
+
+
+========================================
+23. DÚVIDAS COMUNS
+========================================
+
+"Não encontrei o horário que queria"
+- Ele pode já estar ocupado ou indisponível para aquele serviço.
+
+"Meu horário sumiu"
+- Outro atendimento pode ter ocupado aquele período.
+
+"Reservei, mas ainda não tive resposta"
+- A profissional pode ainda estar analisando o pedido.
+
+"Quero remarcar"
+- Entre em contato pelo WhatsApp.
+
+"Quero cancelar"
+- Entre em contato com a profissional para alinhar o cancelamento.
+
+
+========================================
+24. RESUMO FINAL PARA O CLIENTE
+========================================
+
+O uso do sistema é simples:
+1. escolha o serviço;
+2. escolha o dia;
+3. escolha o horário disponível;
+4. informe seus dados;
+5. revise;
+6. envie a solicitação.
+
+Depois disso, a profissional recebe o pedido e pode confirmar o atendimento.
+
+Se precisar de ajuda, use o WhatsApp disponível no fluxo.
+
+Fim do manual CLIENTES.

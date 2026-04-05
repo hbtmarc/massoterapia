@@ -1,0 +1,488 @@
+RELATÓRIO BASE DO PROJETO
+Raquel Maia Massoterapeuta — SPA estática de agendamento
+
+1. VISÃO GERAL
+
+Este projeto é uma SPA estática para agendamento de sessões de massoterapia, desenvolvida com:
+- HTML
+- CSS
+- JavaScript vanilla com ES Modules
+- Hash routing
+- Firebase via CDN/ESM no navegador
+
+O sistema foi pensado para rodar em hospedagem simples, como GitHub Pages ou qualquer servidor estático, sem dependências de build, sem npm e sem framework.
+
+O foco atual do projeto é entregar um MVP funcional e utilizável, com:
+- experiência pública de agendamento;
+- painel administrativo autenticado;
+- bloqueio real de agenda;
+- persistência em Firebase Realtime Database;
+- autenticação do admin com Firebase Auth Email/Senha.
+
+2. OBJETIVO DO SISTEMA
+
+O sistema permite que clientes:
+- escolham um serviço;
+- escolham uma data;
+- escolham um horário disponível;
+- preencham nome e telefone;
+- enviem uma solicitação de agendamento;
+- confirmem o envio e recebam opção de contato via WhatsApp.
+
+Ao mesmo tempo, permite que a profissional:
+- entre no painel administrativo;
+- visualize agendamentos por status;
+- confirme, rejeite, cancele ou exclua;
+- configure os dias e horários de atendimento;
+- defina exceções por dia da semana;
+- acione rapidamente o WhatsApp do cliente com mensagens prontas.
+
+3. CARACTERÍSTICAS PRINCIPAIS
+
+Interface
+- Tema claro/light
+- Visual limpo, suave e acolhedor
+- Layout mobile-first
+- Botões grandes e fáceis de tocar
+- Hierarquia visual simples
+- Texto em português do Brasil
+- Navegação direta, sem modais complexos
+
+Arquitetura
+- Sem framework
+- Sem bundler
+- Sem TypeScript
+- Código simples, linear e legível
+- Estrutura preparada para expansão futura
+
+Persistência
+- Dados públicos e administrativos em Firebase Realtime Database
+- Autenticação administrativa com Firebase Auth
+
+4. ESTRUTURA DO PROJETO
+
+Arquivos principais
+
+Raiz
+- index.html
+  Casca principal da SPA. Define header, área de renderização e carregamento dos módulos.
+
+- README.md
+  Instruções de execução, setup e operação.
+
+- database.rules.json.example
+  Exemplo de regras do Firebase RTDB.
+
+styles/
+- styles/main.css
+  Estilos globais da aplicação: layout, botões, cards, formulários, navegação, grid de horários, admin, badges e responsividade.
+
+scripts/
+- scripts/app.js
+  Ponto de entrada da aplicação.
+
+- scripts/router.js
+  Responsável pelo roteamento por hash.
+
+- scripts/state.js
+  Persistência local temporária com sessionStorage para o fluxo do usuário.
+
+- scripts/firebase-config.js
+  Inicialização do Firebase.
+
+scripts/data/
+- mock-repository.js
+  Catálogo local, regras locais e utilidades de geração de agenda.
+
+- firebase-repository.js
+  Camada principal de leitura/escrita no Firebase.
+
+- firebase-repository.example.js
+  Exemplo/base de referência para integração.
+
+- slot-utils.js
+  Funções utilitárias de cálculo de horários, duração, expansão de slots e validação de disponibilidade.
+
+scripts/views/
+- inicio.js
+  Tela inicial.
+
+- unidade.js
+  Tela da profissional e lista de serviços.
+
+- agendar.js
+  Tela de escolha de data e horário.
+
+- confirmar.js
+  Tela de revisão e confirmação da solicitação.
+
+- sucesso.js
+  Tela final do fluxo público.
+
+- admin.js
+  Painel administrativo com autenticação, agenda, configurações e ações.
+
+5. ROTAS DA APLICAÇÃO
+
+O projeto usa hash routing.
+
+Rotas atuais:
+- #/inicio
+- #/unidade/raquel
+- #/agendar
+- #/confirmar
+- #/sucesso
+- #/admin
+
+Comportamento das rotas
+- O usuário sempre navega sem recarregar a página.
+- O conteúdo é injetado no container principal.
+- O fluxo público é orientado por estado salvo em sessionStorage.
+
+6. CATÁLOGO E IDENTIDADE DO NEGÓCIO
+
+O sistema está configurado para a profissional:
+- Raquel Maia
+- Raquel Maia Massoterapeuta
+
+Informações de negócio utilizadas:
+- atendimento com hora marcada;
+- mensagem institucional de bem-estar;
+- e-mail de contato;
+- telefone/WhatsApp;
+- serviços em português;
+- preços ou “Sob consulta”, quando aplicável.
+
+7. FLUXO PÚBLICO DE AGENDAMENTO
+
+Etapa 1 — Escolha do serviço
+Na tela da profissional, o usuário:
+- visualiza os serviços;
+- pode pesquisar pelo nome;
+- seleciona um serviço agendável;
+- é direcionado à escolha de data e horário.
+
+Alguns itens são institucionais e não necessariamente agendáveis.
+
+Etapa 2 — Escolha de data
+Na tela #/agendar, o usuário:
+- vê os próximos dias válidos;
+- escolhe um dia disponível;
+- carrega os horários possíveis para aquele serviço.
+
+A lista de datas respeita:
+- dias permitidos na configuração;
+- agenda padrão;
+- exceções por dia da semana;
+- regras de almoço e expediente.
+
+Etapa 3 — Escolha de horário
+O usuário seleciona apenas o horário inicial.
+
+A aplicação calcula internamente a duração completa da sessão em blocos de 15 minutos.
+
+Exemplo:
+- serviço de 60 minutos;
+- início às 14:30;
+- bloqueios internos: 14:30, 14:45, 15:00, 15:15.
+
+Logo:
+- horários que colidem com esse intervalo deixam de ser válidos;
+- o próximo início real disponível passa a ser o primeiro que não sobrepõe a sessão anterior.
+
+Etapa 4 — Confirmação dos dados
+Na tela #/confirmar, o usuário informa:
+- nome;
+- telefone.
+
+E visualiza:
+- serviço;
+- data;
+- horário;
+- duração;
+- valor.
+
+Ao confirmar:
+1. o sistema tenta reservar o bloco completo no Firebase;
+2. se houver conflito, a interface informa de forma amigável;
+3. se der certo, o booking é criado com status pending.
+
+Etapa 5 — Sucesso
+Na tela #/sucesso, o usuário vê:
+- resumo do agendamento;
+- opção de contato por WhatsApp.
+
+A mensagem foi ajustada para indicar que o cliente reservou um horário pelo site, e não que o agendamento já foi confirmado.
+
+8. LÓGICA DE AGENDA E BLOQUEIO DE HORÁRIOS
+
+Granularidade
+A agenda trabalha com fatias internas de 15 minutos.
+
+Regra principal
+O cliente escolhe apenas o início.
+O sistema bloqueia automaticamente todo o intervalo da sessão.
+
+Cálculo de duração
+A lógica considera:
+- intervalMinutes = 15
+- requiredSlots = Math.ceil(duracaoServico / 15)
+
+Exemplo:
+- 60 min = 4 slots
+- 90 min = 6 slots
+
+Disponibilidade
+Um horário inicial só aparece se todos os slots contíguos necessários estiverem livres.
+
+O sistema não mostra inícios que:
+- cruzem o almoço;
+- ultrapassem o fim do expediente;
+- caiam em horários bloqueados;
+- colidam com reservas pending ou confirmed;
+- colidam com reservas já existentes no intervalo da sessão.
+
+Resultado visual
+A grade de horários tende a mostrar apenas:
+- horários realmente agendáveis;
+- horários coerentes com a duração do serviço;
+- sem confusão entre “ocupado” e “inválido por regra”.
+
+9. PERSISTÊNCIA E FIREBASE RTDB
+
+Estrutura geral
+Bookings
+Os agendamentos ficam em:
+- /bookings/{bookingId}
+
+Locks de agenda
+Os bloqueios ficam em:
+- /slotLocks/raquel-maia/{YYYY-MM-DD}
+
+Dentro do dia, cada fatia de 15 minutos fica registrada.
+
+Estratégia de segurança
+O sistema não trava apenas um horário.
+Ele faz uma transação no nó do dia inteiro, garantindo que:
+- a faixa completa seja validada de forma atômica;
+- não haja escrita parcial;
+- não haja dupla reserva concorrente;
+- duas pessoas não fechem o mesmo intervalo ao mesmo tempo.
+
+Fluxo de confirmação
+Ao criar um booking:
+1. o sistema calcula todos os slots necessários;
+2. executa transação no dia correspondente;
+3. se todos estiverem livres, grava os bloqueios;
+4. em seguida cria o agendamento com status pending;
+5. se a escrita do booking falhar, faz rollback dos slots.
+
+Status que bloqueiam a agenda
+Bloqueiam disponibilidade:
+- pending
+- confirmed
+
+Liberam disponibilidade:
+- rejected
+- cancelled
+- exclusão do agendamento
+
+10. PAINEL ADMINISTRATIVO
+
+Acesso
+A rota #/admin é protegida com:
+- Firebase Auth
+- login por e-mail e senha
+
+Comportamento
+- usuário não autenticado: vê formulário de login
+- usuário autenticado: vê dashboard administrativo
+
+Abas principais
+Agenda
+Exibe agendamentos agrupados por status:
+- Pendentes
+- Confirmados
+- Rejeitados
+- Cancelados
+
+Config
+Permite configurar:
+- dias de atendimento;
+- horário padrão de abertura;
+- horário padrão de encerramento;
+- intervalo de almoço;
+- intervalo entre horários;
+- modo sem intervalo;
+- exceções por dia da semana.
+
+Ações administrativas
+Dependendo do status, o admin pode:
+- Confirmar
+- Rejeitar
+- Cancelar
+- Excluir
+
+Regras
+- Confirmar: mantém o lock
+- Rejeitar: libera o lock
+- Cancelar: libera o lock
+- Excluir: remove o booking e também limpa os locks relacionados
+
+11. CONFIGURAÇÃO DE AGENDA
+
+O sistema já suporta dois níveis:
+
+1. Configuração padrão
+Define:
+- dias ativos;
+- hora de início;
+- hora de fim;
+- almoço;
+- intervalo padrão entre horários.
+
+2. Exceções por dia da semana
+Permite cenários como:
+- quarta-feira até 21h;
+- sábado com horário reduzido;
+- terça com janela especial.
+
+Isso torna a agenda mais robusta e mais próxima do uso real.
+
+12. WHATSAPP E AUTOMAÇÕES DE MENSAGEM
+
+Links rápidos
+O sistema usa:
+- wa.me/5531983388072 para contato da profissional
+- links com encodeURIComponent para preservar:
+  - acentos;
+  - quebras de linha;
+  - texto formatado.
+
+Tipos de mensagem
+Foram previstas mensagens mais profissionais por status.
+
+Pendente
+Mensagem informando recebimento da solicitação e que haverá retorno.
+
+Confirmado
+Mensagem com:
+- nome do cliente;
+- serviço;
+- data;
+- horário;
+- duração;
+- tom acolhedor e profissional.
+
+Cancelado
+Mensagem respeitosa com convite para reagendamento.
+
+Rejeitado
+Mensagem clara informando indisponibilidade e abertura para nova data.
+
+Ganho operacional
+Isso reduz atrito no atendimento e acelera a comunicação da Raquel com o cliente.
+
+13. REGRAS DO FIREBASE
+
+O arquivo database.rules.json.example já prevê:
+- leitura pública de slotLocks;
+- leitura de bookings apenas para admin autenticado;
+- indexação por criadoEm;
+- validação mínima de estrutura dos bookings;
+- leitura pública de config;
+- escrita de config apenas com autenticação.
+
+Ponto importante
+As regras reais precisam ser publicadas no Firebase Console.
+Se o console estiver com regras abertas ou diferentes, o comportamento pode divergir.
+
+14. INSTRUÇÕES DE USO
+
+Rodar localmente
+Usar servidor estático simples, por exemplo:
+- Live Server no VS Code
+- ou servidor Python
+
+Exemplo:
+- abrir index.html via servidor
+- acessar pelo navegador
+
+Não usar file:// diretamente por causa dos módulos ES.
+
+Fluxo público
+1. Entrar em #/inicio
+2. Ir para a unidade/profissional
+3. Escolher um serviço
+4. Escolher data
+5. Escolher horário
+6. Informar nome e telefone
+7. Finalizar
+
+Fluxo admin
+1. Acessar #/admin
+2. Fazer login com usuário cadastrado no Firebase Auth
+3. Ver agendamentos
+4. Confirmar, rejeitar, cancelar ou excluir
+5. Ajustar agenda em Config
+6. Salvar alterações
+
+15. PONTOS FORTES DO PROJETO
+
+- Estrutura simples e fácil de manter
+- Sem dependência de build
+- Boa base para GitHub Pages
+- Fluxo claro para clientes
+- Painel administrativo funcional
+- Bloqueio robusto contra conflito
+- Firebase integrado sem backend próprio
+- Boa base para evolução futura
+
+16. LIMITAÇÕES ATUAIS
+
+Apesar de funcional, o projeto ainda está em fase MVP. Alguns pontos podem evoluir:
+- histórico real em vez de exclusão definitiva;
+- filtros mais avançados no admin;
+- calendário visual mais completo;
+- confirmação automática assistida por templates mais ricos;
+- auditoria de alterações;
+- múltiplas profissionais/unidades com maior isolamento;
+- notificações automáticas reais;
+- política mais restritiva de segurança nas regras do RTDB.
+
+17. MELHORIAS FUTURAS RECOMENDADAS
+
+Produto
+- histórico de atendimentos;
+- observações internas por booking;
+- bloqueios manuais de agenda;
+- feriados e exceções por data específica;
+- confirmação automática por webhook/cloud functions;
+- lembrete automático antes da sessão.
+
+Técnica
+- separar melhor camada de render e camada de dados;
+- padronizar helpers de formatação;
+- centralizar mensagens por status;
+- adicionar testes manuais documentados;
+- fortalecer regras do Firebase.
+
+18. CONCLUSÃO
+
+O projeto já se encontra em um estágio de MVP sólido e utilizável, com base técnica coerente para operação real.
+
+Ele já entrega:
+- agendamento público funcional;
+- controle administrativo autenticado;
+- bloqueio robusto de horários por duração da sessão;
+- comunicação via WhatsApp;
+- configuração flexível de agenda;
+- persistência em Firebase sem backend dedicado.
+
+Em resumo, trata-se de uma solução enxuta, direta e bem alinhada ao contexto de uma profissional autônoma, com boa experiência mobile e espaço claro para evolução.
+
+Próximos formatos possíveis:
+1. documentação oficial do projeto;
+2. manual da Raquel para uso do painel;
+3. relatório técnico para portfólio/case;
+4. README profissional completo.
