@@ -1,67 +1,60 @@
-TUTORIAL RÁPIDO — ADMIN
-Raquel Maia Massoterapeuta
+*TUTORIAL RÁPIDO — ADMIN*
+*Raquel Maia Massoterapeuta*
 
-1. COMO ENTRAR
-- Abra o site.
-- Acesse: #/admin
-- Faça login com e-mail e senha.
+*1. ENTRAR*
+Abra o site, acesse */admin* e faça login.
 
-2. O QUE VER PRIMEIRO
-- Vá na aba Agenda.
-- Confira os status:
-  - Pendentes
-  - Confirmados
-  - Rejeitados
-  - Cancelados
+*2. COMEÇAR*
+Entre em *Agenda*.
+Lá você verá: *Pendentes, Confirmados, Rejeitados e Cancelados*.
 
-3. COMO TRABALHAR OS PEDIDOS
-- Pendente:
-  - Confirmar = aceita e mantém o horário bloqueado
-  - Rejeitar = nega e libera o horário
-  - Excluir = apaga o registro
+*3. USAR OS PEDIDOS*
+*Pendente*
+• *Confirmar* = aceita e mantém o horário bloqueado
+• *Rejeitar* = recusa e libera o horário
+• *Excluir* = apaga o registro
 
-- Confirmado:
-  - Cancelar = libera o horário
-  - Excluir = apaga o registro
+*Confirmado*
+• *Cancelar* = libera o horário
+• *Excluir* = apaga o registro
 
-- Rejeitado/Cancelado:
-  - Excluir = apaga o registro
+*Rejeitado/Cancelado*
+• *Excluir* = apaga o registro
 
-4. WHATSAPP RÁPIDO
-- Clique no telefone do cliente.
-- O sistema abre o WhatsApp com mensagem pronta conforme o status.
+*4. WHATSAPP*
+Clique no telefone da cliente.
+O sistema abre o WhatsApp com mensagem pronta.
 
-5. COMO ORGANIZAR A AGENDA
-- Use a aba Confirmados para ver os atendimentos agrupados por dia.
-- Essa é a melhor visualização para organizar a rotina.
+*5. ORGANIZAÇÃO*
+Use a aba *Confirmados* para ver os atendimentos por dia.
+Essa é a melhor visão da rotina.
 
-6. COMO CONFIGURAR A AGENDA
-- Vá na aba Config.
-- Ajuste:
-  - dias de atendimento
-  - horário padrão
-  - almoço
-  - intervalo
-  - exceções por dia
+*6. CONFIGURAR A AGENDA*
+Vá em *Config* e ajuste:
+• dias de atendimento
+• horário padrão
+• almoço
+• intervalo
+• exceções por dia
 
 Exemplo:
-- padrão: 09h às 18h
-- quarta: até 21h
+• padrão: 09h às 18h
+• quarta: até 21h
 
-7. REGRA IMPORTANTE
-- O sistema bloqueia a duração inteira da sessão.
-- Ex.: sessão 14:30–15:30 → horários que cruzam esse período não ficam disponíveis.
+*7. REGRA DO HORÁRIO*
+O sistema bloqueia toda a duração da sessão.
+Ex.: 14:30 às 15:30 = horários que cruzarem esse período não ficam livres.
 
-8. BOAS PRÁTICAS
-- Revise Pendentes todos os dias.
-- Use Confirmados como agenda do dia.
-- Evite excluir sem necessidade em operação real.
-- Salve as configurações sempre após alterações.
+*8. BOAS PRÁTICAS*
+• ver Pendentes todos os dias
+• usar Confirmados como agenda do dia
+• evitar excluir sem necessidade
+• salvar sempre após alterar Config
 
-9. RESUMO
-- Agenda = gerencia pedidos
-- Config = define horários
-- WhatsApp = agiliza contato
-- Confirmar mantém bloqueio
-- Rejeitar/Cancelar liberam horário
-- Excluir remove tudo
+*9. RESUMO*
+• *Agenda* = gerencia pedidos
+• *Config* = define horários
+• *WhatsApp* = agiliza contato
+• *Confirmar* = mantém bloqueio
+• *Rejeitar/Cancelar* = libera horário
+• *Excluir* = remove tudo
