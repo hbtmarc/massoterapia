@@ -1,0 +1,49 @@
+TUTORIAL RÁPIDO — CLIENTES
+Raquel Maia Massoterapeuta
+
+1. COMO AGENDAR
+- Escolha o serviço.
+- Escolha o dia disponível.
+- Escolha o horário disponível.
+- Informe nome e telefone.
+- Revise e finalize.
+
+2. O QUE O SISTEMA MOSTRA
+Você verá:
+- serviço
+- duração
+- data
+- horário
+- valor, quando informado
+
+3. IMPORTANTE SOBRE OS HORÁRIOS
+- O sistema considera a duração completa da sessão.
+- Por isso, alguns horários podem não aparecer.
+- Só são exibidos horários realmente disponíveis.
+
+Exemplo:
+- se existe uma sessão de 14:30 até 15:30,
+- horários que cruzam esse período não poderão ser escolhidos.
+
+4. DEPOIS DE ENVIAR
+- Sua solicitação entra no sistema.
+- A profissional analisa o pedido.
+- O atendimento pode ser confirmado depois por ela.
+
+5. WHATSAPP
+- Na tela final existe um botão para falar pelo WhatsApp.
+- A mensagem já vai pronta com os dados do pedido.
+
+6. DICAS RÁPIDAS
+- Confira a data antes de finalizar.
+- Confira o horário escolhido.
+- Informe um telefone correto.
+- Se precisar mudar algo, fale com a profissional.
+
+7. RESUMO
+- Escolha serviço
+- Escolha dia
+- Escolha horário
+- Preencha seus dados
+- Finalize
+- Aguarde retorno da profissional
